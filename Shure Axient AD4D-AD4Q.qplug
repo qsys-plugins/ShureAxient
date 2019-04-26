@@ -1,0 +1,350 @@
+-- Shure Axient AD4D/AD4Q Monitor Plugin
+-- Joe Peavey - December 2018
+-- QSC Boulder, Colorado
+
+PluginInfo = 
+{
+  Name="Shure~Axient~AD4D/AD4Q Receiver",
+  Version="1.0",
+  Id="3285187a-05bb-41a2-be96-3b2906cdefa2",
+  Author="QSC",
+  Description="Shure AD4D/AD4Q v0.1"
+}
+
+function WebToRgb(color) -- Converts Web Hex strings or decimal values to RGB table
+  if type(color)=="string" then color = tonumber(color:gsub("%X",""),16) end
+  local rgb,rh,gh,bh = {},string.match(string.format("%06x",color),"(%x%x)(%x%x)(%x%x)")
+  for _,h in ipairs{rh,gh,bh} do table.insert(rgb,tonumber(h,16)) end
+  return load("return {"..table.concat(rgb,",").."}")()
+end
+function Grayscale(h) return {h,h,h} end
+function GetColor(props) return { 195, 223, 155 } end
+function find(a,t) local f = false for _,_a in pairs(t) do f=a==_a if f then break end end return f end
+
+SVG={
+  SHURE = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiIHdpZHRoPSIxMTUuMDUzcHgiIGhlaWdodD0iMjAuMjI1cHgiIHZpZXdCb3g9IjAgMCAxMTUuMDUzIDIwLjIyNSIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMTE1LjA1MyAyMC4yMjUiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxnIGlkPSJMYXllcl8zIiBkaXNwbGF5PSJub25lIj48cmVjdCB4PSI4Ni4xMjIiIHk9Ii00LjM3OSIgZGlzcGxheT0iaW5saW5lIiBmaWxsPSIjMjQwMDBFIiB3aWR0aD0iMzAuMDgxIiBoZWlnaHQ9IjEyLjY5MSIvPjwvZz48ZyBpZD0iQmxhY2tfMV8iIGRpc3BsYXk9Im5vbmUiPjxnIGlkPSJCbGFjayIgZGlzcGxheT0iaW5saW5lIj48cGF0aCBmaWxsPSIjMjMxRjIwIiBkPSJNNTYuODQyLDAuMTMxbC0xLjU0OSwxMi4wODVoLTIuMjU0bDEuNTA1LTEyLjA4NWgtOC41MjFsLTEuMTM4LDguMjE0YzAsMC0wLjU4NSwzLjE4OC0wLjExNCw0LjYyOWMxLjA3OSwzLjI2LDMuNzcxLDQuNDQ1LDMuNzcxLDQuNDQ1bDAuMzEyLDAuMTdjMS4wODEsMC41NTMsMi4yMjIsMC43OTUsMy43MDEsMC43OTVoMC44MDZjMi4xNDctMC4wMDYsMy44OTQtMC40ODQsNS4zMi0xLjE5NGMwLjAwMy0wLjAwOSwwLjA4OS0wLjA0MSwwLjA4OS0wLjA0MWMwLjQ2MS0wLjI3NCwzLjExLTEuNjM4LDQuNzUyLTQuODc3YzAuNjg2LTEuMzU1LDEuMDAyLTMuNDQ3LDEuMDAyLTMuNDQ3bDEuMDI0LTguNjkzIi8+PHBhdGggZmlsbD0iIzIzMUYyMCIgZD0iTTExNC40NzEsMC42NTRjMC4zNzksMC4zODcsMC41ODIsMC44OTUsMC41ODIsMS40NDJjMCwwLjU2Ni0wLjIxNiwxLjA3NS0wLjYwNCwxLjQ1M2MtMC40MDEsMC4zODktMC45MjMsMC41OTktMS40NTEsMC41OTljLTAuNTQ5LDAtMS4wNjQtMC4yMi0xLjQ2MS0wLjYyMmMtMC4zODYtMC4zOS0wLjU4OC0wLjg5OS0wLjU4OC0xLjQzYzAtMC4zNjksMC4wOTctMC43MjMsMC4zLTEuMDdjMC4zNjgtMC42MiwxLjAwNy0wLjk4NywxLjc0OS0wLjk4N0MxMTMuNTYxLDAuMDM4LDExNC4wNzMsMC4yNTMsMTE0LjQ3MSwwLjY1NCBNMTExLjgwNywwLjg2M2MtMC4zMzQsMC4zMzUtMC41MiwwLjc3NC0wLjUyLDEuMjI4czAuMTcsMC44NzcsMC40OTEsMS4yYzAuMzI4LDAuMzMyLDAuNzY1LDAuNTIsMS4yMTgsMC41MmMwLjQ0NCwwLDAuODc1LTAuMTgxLDEuMjE0LTAuNTAzYzAuMzIzLTAuMzExLDAuNTA0LTAuNzQxLDAuNTA0LTEuMTgyYzAtMC40OTItMC4xNjUtMC45MDQtMC40ODctMS4yMzNjLTAuMzMyLTAuMzM4LTAuNzUyLTAuNTEzLTEuMjI3LTAuNTEzQzExMi41MzcsMC4zNzgsMTEyLjEzLDAuNTQsMTExLjgwNywwLjg2MyBNMTEzLjAzOSwwLjkxNGMwLjY0OSwwLDAuOTczLDAuMjIyLDAuOTczLDAuNjU1YzAsMC4zMDEtMC4xODYsMC41MjYtMC40OTYsMC42MDZsMC41MDgsMS4wMTZoLTAuNjE2bC0wLjQzNS0wLjkzMmgtMC4yNzF2MC45MzJoLTAuNTU2VjAuOTE0SDExMy4wMzl6IE0xMTIuNzAxLDEuOTI2aDAuMjcxYzAuMzE1LDAsMC40NjktMC4wOTYsMC40NjktMC4zMjJjMC0wLjIzNy0wLjE2NC0wLjM0LTAuNDk4LTAuMzRoLTAuMjQxVjEuOTI2TDExMi43MDEsMS45MjZ6Ii8+PHBvbHlsaW5lIGZpbGw9IiMyMzFGMjAiIHBvaW50cz0iMzIuNDMxLDAuMTMxIDIzLjkzOCwwLjEzMSAyMS44MDEsMTcuNjIyIDMwLjI3NiwxNy42MjIgMzAuMjgzLDE3LjYyNyAzMC4yODMsMTcuNjIyIDMwLjI4NSwxNy42MjIgMzAuMjgzLDE3LjYyIDMxLjAzOCwxMS40OTQgMzMuNjQ2LDExLjQ5NCAzMy42OTcsMTEuNDY0IDMyLjk0MywxNy42MDQgNDEuNDI2LDE3LjYyNyA0My41NzIsMC4xMzYgNDMuNTcyLDAuMTQ3IDM1LjA4OCwwLjE0NyAzNC4zNDIsNi4xOTQgMzQuMzI4LDYuMTg0IDMxLjcwOSw2LjE4NCAzMS42ODMsNi4xOTYgMzIuNDI0LDAuMTM2ICIvPjxwYXRoIGZpbGw9IiMyMzFGMjAiIGQ9Ik05OC40MjEsNC4xNDNoMTAuMTQ2bDAuMzczLTQuMDIxSDkwLjIzTDg4LjYyNiwxMy4xOGwtNi40NDItMy4yODNjMCwwLDEuNzc3LTAuNTA0LDIuNzUtMS4xODNjMS4wMTUtMC43MSwxLjQzOS0xLjQxNSwxLjYyOS0xLjc0NGMwLjM2LTAuNjA0LDAuNzUtMS4zMDQsMC43OTUtMi42MjJjMC4wNDUtMS4zNjEtMC42Ny0yLjMzNy0xLjA1My0yLjc4MmMtMC4zODUtMC40NTctMS4zMy0xLjQ2LTMtMS40MzVjLTEuODU1LDAuMDI2LTE1LjQsMC0xNS40LDBsLTAuNDk2LDMuOTU1aDEyLjE5NWwtMC4yOSwyLjEzNEg2Ny4xNDhMNjUuNzksMTcuNDdoNy4zMzNsMC43NDktNS42NDFsMTMuOTEyLDguMzk1bDAuMzA4LTIuNTg2bDE4LjkyNi0wLjAxN2wwLjQ0MS00LjZsLTEwLjI1NS0wLjAwNmwwLjMxOC0yLjMxOGgxMC4yNDZsMC42MDMtNC40NjJsLTEwLjI0LDAuMDExTDk4LjQyMSw0LjE0M3oiLz48cGF0aCBmaWxsPSIjMjMxRjIwIiBkPSJNNi42NzUsMC4wMzRjLTEuMTQsMC4wMDUtMi4xNTEsMC4zOTctMi45NTcsMS4wMjlsLTAuMDQsMC4wMDdDMy42NzIsMS4wNjksMy42NzEsMS4wNjQsMy42NzEsMS4wNjRsMC4wMDEsMC4wMDdDMS4wODksMy4wODgsMC41MzEsNy41LDQuMTk0LDkuMzE0YzAuNDg4LDAuMjQyLDguNTkxLDMuNTI3LDguNTkxLDMuNTI3bDAuMDIsMC4wMDZMMC43ODIsMTIuODY1bC0wLjc2Nyw0LjczN0wwLDE3LjYxNWgwLjAxNUwwLjAxLDE3LjYyN2wwLjAxMS0wLjAxMmMwLjQ2MSwwLDEzLjg1MywwLjAxNiwxNC45NDUsMC4wMTZjMi4yNTcsMC4wMDIsMy44MDktMC44NjUsNC44ODgtMi4zODdjMC4zOTEtMC41MjEsMC42NS0xLjAzNiwwLjgyNS0xLjU2NGMwLjU2My0xLjY1NSwwLjQ1Ny0zLjU0Mi0wLjY2Ny00LjQ0NGMtMC4yMzktMC4xOTEtMC40NTEtMC4zNTktMC42NzEtMC40OTNjLTAuMTUtMC4wOTItMC40MDItMC4yNDUtMC42Mi0wLjM0N0MxNi43OTcsNy40OCw4LjU2Niw0LjAwMyw4LjU2Niw0LjAwM2wxMi43MDUtMC4wMDhsMC41MjQtMy45NWwtMC4zMTgsMC4yMzNsMC4zMTgtMC4yNDRINi42NzV6Ii8+PC9nPjwvZz48ZyBpZD0iV2hpdGVfMV8iPjxnIGlkPSJXaGl0ZSI+PHBhdGggZmlsbD0iI0ZGRkZGRiIgZD0iTTU2Ljg0MiwwLjEzMWwtMS41NDksMTIuMDg1aC0yLjI1NGwxLjUwNS0xMi4wODVoLTguNTIxbC0xLjEzOCw4LjIxNGMwLDAtMC41ODUsMy4xODgtMC4xMTQsNC42MjljMS4wNzksMy4yNiwzLjc3MSw0LjQ0NSwzLjc3MSw0LjQ0NWwwLjMxMiwwLjE3YzEuMDgxLDAuNTUzLDIuMjIyLDAuNzk1LDMuNzAxLDAuNzk1aDAuODA2YzIuMTQ3LTAuMDA2LDMuODk0LTAuNDg0LDUuMzItMS4xOTRjMC4wMDMtMC4wMDksMC4wODktMC4wNDEsMC4wODktMC4wNDFjMC40NjEtMC4yNzQsMy4xMS0xLjYzOCw0Ljc1Mi00Ljg3N2MwLjY4Ni0xLjM1NSwxLjAwMi0zLjQ0NywxLjAwMi0zLjQ0N2wxLjAyNC04LjY5MyIvPjxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik0xMTQuNDcxLDAuNjU0YzAuMzc5LDAuMzg3LDAuNTgyLDAuODk1LDAuNTgyLDEuNDQyYzAsMC41NjYtMC4yMTYsMS4wNzUtMC42MDQsMS40NTNjLTAuNDAxLDAuMzg5LTAuOTIzLDAuNTk5LTEuNDUxLDAuNTk5Yy0wLjU0OSwwLTEuMDY0LTAuMjItMS40NjEtMC42MjJjLTAuMzg2LTAuMzktMC41ODgtMC44OTktMC41ODgtMS40M2MwLTAuMzY5LDAuMDk3LTAuNzIzLDAuMy0xLjA3YzAuMzY4LTAuNjIsMS4wMDctMC45ODcsMS43NDktMC45ODdDMTEzLjU2MSwwLjAzOCwxMTQuMDczLDAuMjUzLDExNC40NzEsMC42NTQgTTExMS44MDcsMC44NjNjLTAuMzM0LDAuMzM1LTAuNTIsMC43NzQtMC41MiwxLjIyOHMwLjE3LDAuODc3LDAuNDkxLDEuMmMwLjMyOCwwLjMzMiwwLjc2NSwwLjUyLDEuMjE4LDAuNTJjMC40NDQsMCwwLjg3NS0wLjE4MSwxLjIxNC0wLjUwM2MwLjMyMy0wLjMxMSwwLjUwNC0wLjc0MSwwLjUwNC0xLjE4MmMwLTAuNDkyLTAuMTY1LTAuOTA0LTAuNDg3LTEuMjMzYy0wLjMzMi0wLjMzOC0wLjc1Mi0wLjUxMy0xLjIyNy0wLjUxM0MxMTIuNTM3LDAuMzc4LDExMi4xMywwLjU0LDExMS44MDcsMC44NjMgTTExMy4wMzksMC45MTRjMC42NDksMCwwLjk3MywwLjIyMiwwLjk3MywwLjY1NWMwLDAuMzAxLTAuMTg2LDAuNTI2LTAuNDk2LDAuNjA2bDAuNTA4LDEuMDE2aC0wLjYxNmwtMC40MzUtMC45MzJoLTAuMjcxdjAuOTMyaC0wLjU1NlYwLjkxNEgxMTMuMDM5eiBNMTEyLjcwMSwxLjkyNmgwLjI3MWMwLjMxNSwwLDAuNDY5LTAuMDk2LDAuNDY5LTAuMzIyYzAtMC4yMzctMC4xNjQtMC4zNC0wLjQ5OC0wLjM0aC0wLjI0MVYxLjkyNkwxMTIuNzAxLDEuOTI2eiIvPjxwb2x5bGluZSBmaWxsPSIjRkZGRkZGIiBwb2ludHM9IjMyLjQzMSwwLjEzMSAyMy45MzgsMC4xMzEgMjEuODAxLDE3LjYyMiAzMC4yNzYsMTcuNjIyIDMwLjI4MywxNy42MjcgMzAuMjgzLDE3LjYyMiAzMC4yODUsMTcuNjIyIDMwLjI4MywxNy42MiAzMS4wMzgsMTEuNDk0IDMzLjY0NiwxMS40OTQgMzMuNjk3LDExLjQ2NCAzMi45NDMsMTcuNjA0IDQxLjQyNiwxNy42MjcgNDMuNTcyLDAuMTM2IDQzLjU3MiwwLjE0NyAzNS4wODgsMC4xNDcgMzQuMzQyLDYuMTk0IDM0LjMyOCw2LjE4NCAzMS43MDksNi4xODQgMzEuNjgzLDYuMTk2IDMyLjQyNCwwLjEzNiAiLz48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNOTguNDIxLDQuMTQzaDEwLjE0NmwwLjM3My00LjAyMUg5MC4yM0w4OC42MjYsMTMuMThsLTYuNDQyLTMuMjgzYzAsMCwxLjc3Ny0wLjUwNCwyLjc1LTEuMTgzYzEuMDE1LTAuNzEsMS40MzktMS40MTUsMS42MjktMS43NDRjMC4zNi0wLjYwNCwwLjc1LTEuMzA0LDAuNzk1LTIuNjIyYzAuMDQ1LTEuMzYxLTAuNjctMi4zMzctMS4wNTMtMi43ODJjLTAuMzg1LTAuNDU3LTEuMzMtMS40Ni0zLTEuNDM1Yy0xLjg1NSwwLjAyNi0xNS40LDAtMTUuNCwwbC0wLjQ5NiwzLjk1NWgxMi4xOTVsLTAuMjksMi4xMzRINjcuMTQ4TDY1Ljc5LDE3LjQ3aDcuMzMzbDAuNzQ5LTUuNjQxbDEzLjkxMiw4LjM5NWwwLjMwOC0yLjU4NmwxOC45MjYtMC4wMTdsMC40NDEtNC42bC0xMC4yNTUtMC4wMDZsMC4zMTgtMi4zMThoMTAuMjQ2bDAuNjAzLTQuNDYybC0xMC4yNCwwLjAxMUw5OC40MjEsNC4xNDN6Ii8+PHBhdGggZmlsbD0iI0ZGRkZGRiIgZD0iTTYuNjc1LDAuMDM0Yy0xLjE0LDAuMDA1LTIuMTUxLDAuMzk3LTIuOTU3LDEuMDI5bC0wLjA0LDAuMDA3QzMuNjcyLDEuMDY5LDMuNjcxLDEuMDY0LDMuNjcxLDEuMDY0bDAuMDAxLDAuMDA3QzEuMDg5LDMuMDg4LDAuNTMxLDcuNSw0LjE5NCw5LjMxNGMwLjQ4OCwwLjI0Miw4LjU5MSwzLjUyNyw4LjU5MSwzLjUyN2wwLjAyLDAuMDA2TDAuNzgyLDEyLjg2NWwtMC43NjcsNC43MzdMMCwxNy42MTVoMC4wMTVMMC4wMSwxNy42MjdsMC4wMTEtMC4wMTJjMC40NjEsMCwxMy44NTMsMC4wMTYsMTQuOTQ1LDAuMDE2YzIuMjU3LDAuMDAyLDMuODA5LTAuODY1LDQuODg4LTIuMzg3YzAuMzkxLTAuNTIxLDAuNjUtMS4wMzYsMC44MjUtMS41NjRjMC41NjMtMS42NTUsMC40NTctMy41NDItMC42NjctNC40NDRjLTAuMjM5LTAuMTkxLTAuNDUxLTAuMzU5LTAuNjcxLTAuNDkzYy0wLjE1LTAuMDkyLTAuNDAyLTAuMjQ1LTAuNjItMC4zNDdDMTYuNzk3LDcuNDgsOC41NjYsNC4wMDMsOC41NjYsNC4wMDNsMTIuNzA1LTAuMDA4bDAuNTI0LTMuOTVsLTAuMzE4LDAuMjMzbDAuMzE4LTAuMjQ0SDYuNjc1eiIvPjwvZz48L2c+PC9zdmc+",
+  AD="PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzMuNDMgMjcuMzQiPjx0aXRsZT5BWElFTlQgRElHSVRBTDwvdGl0bGU+PHBhdGggZD0iTTIwLjQ3LDUuNjRsMTIsMjQuNjloLTUuMWwtMi41OS01LjY3SDEwLjU0TDcuOTIsMzAuMzNIMi43OEwxNSw1LjY0Wk0xMi41NCwyMC41MUgyMi44OWwtNS4xNy0xMVoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yLjc4IC0zLjcxKSIgc3R5bGU9ImZpbGw6I2ZmZiIvPjxwYXRoIGQ9Ik00MC43OSw1LjY0LDQ4LDE0LjA5bDcuMTUtOC40NWg2LjEyTDUwLjg2LDE3LjU2LDYyLDMwLjMzSDU1LjhMNDgsMjEuMDZsLTcuODksOS4yN2gtNi4zTDQ1LDE3LjU2LDM0LjYzLDUuNjRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMi43OCAtMy43MSkiIHN0eWxlPSJmaWxsOiNmZmYiLz48cGF0aCBkPSJNNjkuNTUsNS42NFYzMC4zM0g2NC43MlY1LjY0WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTIuNzggLTMuNzEpIiBzdHlsZT0iZmlsbDojZmZmIi8+PHBhdGggZD0iTTk3LjE4LDUuNjRWOS43OEg3OS44M3Y1Ljc0SDk0Ljc2djQuMTRINzkuODN2Ni41M0g5Ny41OXY0LjE0SDc1VjUuNjRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMi43OCAtMy43MSkiIHN0eWxlPSJmaWxsOiNmZmYiLz48cGF0aCBkPSJNMTA2LjMsNS42NGwxNi41NCwxNy44M1Y1LjY0aDQuNjNWMzAuMzNIMTIzTDEwNS44MywxMS44NVYzMC4zM0gxMDEuMlY1LjY0WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTIuNzggLTMuNzEpIiBzdHlsZT0iZmlsbDojZmZmIi8+PHBhdGggZD0iTTE1Ny4zMSw1LjY0VjkuNzhIMTQ2LjI2VjMwLjMzaC00Ljg0VjkuNzhoLTExVjUuNjRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMi43OCAtMy43MSkiIHN0eWxlPSJmaWxsOiNmZmYiLz48cGF0aCBkPSJNMTg5LjQ3LDUuNTNjOC43NiwwLDE0LjE2LDQuMTEsMTQuMTYsMTIuM3MtNS40MywxMi42LTEzLjgxLDEyLjZIMTc3LjM4VjUuNTNabS0yLjE2LDIwLjcyYzgsMCwxMS40NC0yLjQzLDExLjQ0LTguMzVzLTMuMDktOC4xOS0xMS4yNy04LjE5aC01LjIyVjI2LjI1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTIuNzggLTMuNzEpIiBzdHlsZT0iZmlsbDojZmZmIi8+PHBhdGggZD0iTTIxMi42Myw1LjUzdjI0LjloLTQuODhWNS41M1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yLjc4IC0zLjcxKSIgc3R5bGU9ImZpbGw6I2ZmZiIvPjxwYXRoIGQ9Ik0yNDQsMTMuMzFoLTVjLTEuMzQtMy0zLjkyLTQuMjItNy42Ni00LjIyLTYuMzIsMC05LjY5LDMuNjctOS42OSw4Ljc0LDAsNS40OCwzLjYxLDguOSw5LjMxLDguOSw0Ljc0LDAsNy40Ni0xLjY3LDguNjItNS4xN2gtOC43NnYtMy45aDEzLjMzVjMwLjcxaC0zbC0xLTIuNTdhMTUuMjMsMTUuMjMsMCwwLDEtOS4zMSwyLjkxYy04LjE0LDAtMTQuMTUtNC41Mi0xNC4xNS0xMywwLTcuNzQsNS4wOC0xMy4xNiwxNC0xMy4xNkMyMzcuNjMsNC45MSwyNDIuODUsNy43OSwyNDQsMTMuMzFaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMi43OCAtMy43MSkiIHN0eWxlPSJmaWxsOiNmZmYiLz48cGF0aCBkPSJNMjUzLjg4LDUuNTN2MjQuOUgyNDlWNS41M1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yLjc4IC0zLjcxKSIgc3R5bGU9ImZpbGw6I2ZmZiIvPjxwYXRoIGQ9Ik0yODQuMDcsNS41M1Y5LjcxSDI3Mi45MVYzMC40M0gyNjhWOS43MUgyNTYuODZWNS41M1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yLjc4IC0zLjcxKSIgc3R5bGU9ImZpbGw6I2ZmZiIvPjxwYXRoIGQ9Ik0yOTguMzYsNS41M2wxMi4xMiwyNC45aC01LjE1bC0yLjYxLTUuNzJIMjg4LjMzbC0yLjY1LDUuNzJIMjgwLjVsMTIuMjktMjQuOVptLTgsMTVIMzAwLjhsLTUuMjItMTEuMVoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yLjc4IC0zLjcxKSIgc3R5bGU9ImZpbGw6I2ZmZiIvPjxwYXRoIGQ9Ik0zMTguMTEsNS41M1YyNi4xMmgxOC4xdjQuMzFoLTIzVjUuNTNaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMi43OCAtMy43MSkiIHN0eWxlPSJmaWxsOiNmZmYiLz48cGF0aCBkPSJNMTY0LjU1LDMuNzFBNC4yOCw0LjI4LDAsMCwxLDE2Ny42OSw1LDQuMjgsNC4yOCwwLDAsMSwxNjksOC4xNmE0LjI2LDQuMjYsMCwwLDEtMS4zMiwzLjE0LDQuNDEsNC40MSwwLDAsMS0zLjIxLDEuMyw0LjE3LDQuMTcsMCwwLDEtMy4wNS0xLjMzLDQuNCw0LjQsMCwwLDEtMS4zMS0zLjE5LDQuMiw0LjIsMCwwLDEsMS4zMS0zQTQuMjQsNC4yNCwwLDAsMSwxNjQuNTUsMy43MVptMCw4LjJhMy42OSwzLjY5LDAsMCwwLDIuNjctMS4wOSwzLjU4LDMuNTgsMCwwLDAsMS4xMy0yLjY2LDMuNzksMy43OSwwLDAsMC0zLjgtMy43OCwzLjU4LDMuNTgsMCwwLDAtMi42NiwxLjEzLDMuNjksMy42OSwwLDAsMCwwLDUuMjlBMy42MywzLjYzLDAsMCwwLDE2NC41NSwxMS45MVptMi0xLjM2aC0xLjEzbC0uOTMtMmgtLjY5djJoLTFWNS43N2gxLjczYzEuMzUsMCwyLC40NiwyLDEuMzhhMS4yNSwxLjI1LDAsMCwxLTEsMS4yOVptLTIuNzUtMi42N2guNjljLjY1LDAsMS0uMjIsMS0uNjVzLS4zMy0uNzMtMS0uNzNoLS42NVoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yLjc4IC0zLjcxKSIgc3R5bGU9ImZpbGw6I2ZmZiIvPjwvc3ZnPg==",
+  Base="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAg",
+  Q=  "NDQgNDUiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDQ0IDQ1OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHN0eWxlIHR5cGU9InRleHQvY3NzIj4uc3Qwe2ZpbGw6I0ZGRkZGRjt9PC9zdHlsZT48Zz48cGF0aCBjbGFzcz0ic3QwIiBkPSJNMzUuMjEsMjEuNTVjMCwzLjg4LTEuNjcsNy41NS00LjU2LDkuNzZjMS41LDEuMzMsMi4zNSwxLjczLDQuOTYsMS43M3Y0LjE1Yy0yLjcyLDAtMy45MS0wLjMxLTUuMS0wLjg4Yy0xLjU2LTAuNzUtMi40OC0xLjgtMy42LTIuOTljLTEuODcsMC42OC0zLjk0LDEuMDItNi40MywxLjAyYy05Ljg2LDAtMTQuNzItNS43OC0xNC43Mi0xMi43OGMwLTguMDksNS4yLTEzLjE2LDE0LjcyLTEzLjE2QzMwLjA3LDguMzksMzUuMjEsMTMuNDksMzUuMjEsMjEuNTV6IE0yMC40OSwzMC4xOGMxLjIyLDAsMi4zOC0wLjE0LDMuNTQtMC40NGMtMC42MS0xLjYtMS4zNi0yLjI0LTIuODItMi43MnYtNC4xNWMyLjY1LDAuMTcsNC44NiwxLjU2LDYuNTYsNWMxLjczLTEuNTMsMi42Mi0zLjgxLDIuNjItNi42YzAtNS41MS0zLjc3LTguNzQtOS45My04Ljc0Yy02LjAyLDAtOS44NiwzLjItOS44Niw4Ljc0QzEwLjU5LDI2Ljk5LDE0LjMzLDMwLjE4LDIwLjQ5LDMwLjE4eiIvPjwvZz48L3N2Zz4=",
+  D=  "MzEgMjciIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDMxIDI3OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PHN0eWxlIHR5cGU9InRleHQvY3NzIj4uc3Qwe2ZpbGw6I0ZGRkZGRjt9PC9zdHlsZT48Zz48cGF0aCBjbGFzcz0ic3QwIiBkPSJNMTUuMzMsMEMyNCwwLDI5LjM0LDQuMDgsMjkuMzQsMTIuMjFjMCw4LjA2LTUuMzcsMTIuNTEtMTMuNjcsMTIuNTFIMy4zNlYwSDE1LjMzeiBNMTMuMTksMjAuNTdjNy44OSwwLDExLjMyLTIuNDEsMTEuMzItOC4zcy0zLjA2LTguMTMtMTEuMTUtOC4xM0g4LjE5djE2LjQySDEzLjE5eiIvPjwvZz48L3N2Zz4=",
+  AD4="MTAwIDQzIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAxMDAgNDM7IiB4bWw6c3BhY2U9InByZXNlcnZlIj48c3R5bGUgdHlwZT0idGV4dC9jc3MiPi5zdDB7ZmlsbDojRkZGRkZGO308L3N0eWxlPjxnPjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0yNC40LDZsMTIuNjgsMjQuNzJoLTMuMzdsLTMuMi02LjQySDE0LjU4bC0zLjIzLDYuNDJIOC4wMkwyMC43Myw2SDI0LjR6IE0xNS45NCwyMS42NEgyOS4yTDIyLjU3LDguMzVMMTUuOTQsMjEuNjR6Ii8+PHBhdGggY2xhc3M9InN0MCIgZD0iTTUyLjczLDZjNy45MiwwLDEzLjEyLDQuNDUsMTMuMTIsMTIuMTRjMCw4LjUzLTUuNjgsMTIuNTgtMTQuMTEsMTIuNThINDAuNDJWNkg1Mi43M3ogTTUyLjI4LDI4LjA3YzYuNjMsMCwxMC41MS0zLjQzLDEwLjUxLTEwLjAzYzAtNi4xNS0zLjk4LTkuMzgtMTAuMDMtOS4zOGgtOS4zNXYxOS40MUg1Mi4yOHoiLz48L2c+PGc+PHBhdGggY2xhc3M9InN0MCIgZD0iTTg3Ljc0LDZ2MTUuNzRoMy4xNnYzLjc0aC0zLjE2djUuMjRoLTQuMjh2LTUuMjRINjguMDJ2LTMuNzRMODMuMDEsNkg4Ny43NHogTTcyLjg0LDIxLjc0aDEwLjYxVjEwLjYzTDcyLjg0LDIxLjc0eiIvPjwvZz48L3N2Zz4="
+}
+Color = {
+  LED = {
+    Green = WebToRgb(0xFF00),
+    Amber = WebToRgb(0xD6851A),
+    Yellow = WebToRgb(0xF9F900),
+    Red = WebToRgb(0xFF0000),
+    Blue = WebToRgb(0xFF),
+    Purple = WebToRgb(0x7F00FF),
+    Off = Grayscale(0x2F)
+  },
+  Stroke = WebToRgb(0xA0A0A4),
+  BattMeter = WebToRgb(0xA49D),
+  BGBlack = Grayscale(0x14),
+  LtGray= Grayscale(0x33),
+  LtrGray= Grayscale(0x66),
+  White = Grayscale(0xFF),
+  Black = Grayscale(0x0),
+  Gain = WebToRgb(0x2D83A6)
+}
+Color.Button = { Off = Grayscale(0x7F), On = Color.LED.Green }
+Color.Mute = { Off = Grayscale(0x14), On = Color.LED.Red }
+Color.Encrypt = { Off = Grayscale(0x64), On = Color.LED.Green }
+
+function GetColor(props)return Color.LtGray end
+function GetPrettyName(props)return string.format("Shure %s",props["Axient Receiver Model"].Value)end
+function GetProperties()return {{Name="Axient Receiver Model",Type="enum",Choices={"AD4D - 2 Channel","AD4Q - 4 Channel"},Value="AD4D - 2 Channel"}}end
+function ModelChannels(props)return tonumber((props["Axient Receiver Model"].Value):match(" (%d) Channel"))end
+function GetModel(props)return(props["Axient Receiver Model"].Value):match("^%w+")end
+
+function GetControls(props)
+  local channels = ModelChannels(props)
+  ctls = {{Name="hwconnect",ControlType="Button",PinStyle="Both",UserPin=true,ButtonType="Toggle",Count=1},
+    {Name="Status",ControlType="Indicator",IndicatorType="Status",PinStyle="Output",UserPin=true,Count=1}}
+  for i,n in ipairs{"ip","model","fw","id","band","txmode","quadmode","encmode"} do
+    table.insert(ctls,{Name = "hw"..n,ControlType=i==1 and"Text"or"Indicator",IndicatorType="Text",PinStyle=i==1 and"Both"or"Output",UserPin=true,Count=1}) end
+  for ch=1,channels do
+    local pre = string.format("ch_%i_",ch)
+    table.insert(ctls,{Name=pre.."mute",ControlType="Button",ButtonType="Toggle",Count=1,PinStyle="Both",UserPin=true})
+    table.insert(ctls,{Name=pre.."gain",ControlType="Knob",Min=-18,Max=42,ControlUnit="dB",Count=1,PinStyle="Both",UserPin=true})
+    table.insert(ctls,{Name=pre.."bat_chstat",ControlType="Knob",Min=0,Max=100,ControlUnit="Percent",PinStyle="Output",UserPin=true,Count=1})
+    for _,base in ipairs{"name","grp","status","freq","tv"}do table.insert(ctls,{Name=pre..base,ControlType="Indicator",IndicatorType=(base=="status"and"Status"or"Text"),Count=1,PinStyle="Output",UserPin=true})end
+    for _,tx in ipairs{"type","ofs","rfpwr","pwrlk","intdet","enc"} do table.insert(ctls,{ Name = pre.."tx_"..tx, ControlType="Indicator",IndicatorType="Text",PinStyle="Output",UserPin=true, Count=1})end
+    for _,batt in ipairs{"cyc","rtime","type","temp"} do table.insert(ctls,{ Name = pre.."bat_"..batt, ControlType="Indicator",IndicatorType="Text",PinStyle="Output",UserPin=true,Count=1})end
+    for qual=1,5 do table.insert(ctls,{Name=string.format("%squal_%i",pre,qual),ControlType="Indicator",IndicatorType="Led",Count=1}) end
+    for aud=1,8 do table.insert(ctls,{Name=string.format("%saud_%i",pre,aud),ControlType="Indicator",IndicatorType="Led",Count=1}) end
+    for _,ab in ipairs{"a","b"} do
+      table.insert(ctls,{Name = string.format("%s%s_ant",pre,ab),ControlType = "Indicator",IndicatorType = "Led", Count=1})
+      for rf=1,6 do table.insert(ctls,{ Name = string.format("%s%s_rf_%i",pre,ab,rf), ControlType = "Indicator", IndicatorType = "Led", Count=1 }) end
+    end
+  end return ctls
+end
+
+function GetControlLayout(props)
+  local channels,model,ct,chofs,mofs,col=ModelChannels(props),GetModel(props),{g="Green",a="Amber",y="Yellow",r="Red",b="Blue",p="Purple"},{x=-4,y=195},{x=96,y=60,ofs=100},{a="ggggyyyr",r="aaaaar"}
+  local layout={hwip={PrettyName="Receiver~Address",Style="TextBox",FontSize=12,Position={116,449},Size={100,16}},Status={PrettyName="Receiver~Status",Style="TextBox",Position={62,473},Size={221,16}},
+    hwconnect={PrettyName="Receiver~Connect",Style="Button",Legend="Connect",Font="Roboto",FontStyle="Bold",Position={225,449},Size={58,16},Color=Color.Button.On,UnlinkOffColor=true,OffColor=Color.Button.Off}}
+  local graphics={
+    {Type="GroupBox",StrokeWidth=0,Fill=Color.Black,Position={0,0},Size={106+channels*100,572}},
+    {Type="Svg",Image=SVG.SHURE,Position={7,6},Size={84,14}},-- Shure Logo
+    {Type="Svg",Image=SVG.AD,Position={channels==2 and 94 or 181,6},Size={144,12}},-- AD Logo
+    {Type="Svg",Image=SVG.Base..SVG.AD4,Position={channels==2 and 244 or 443,6},Size={40,12}},-- AD4
+    {Type="Svg",Image=SVG.Base..SVG[channels==2 and"D"or"Q"],Position={channels==2 and 286 or 485,6},Size={12+(channels==2 and 0 or 2),12+(channels==2 and 0 or 1)}},-- D/Q
+    {Type="Label",Text="v"..PluginInfo.Version,HTextAlign="Right",Color=Color.White,FontSize=7,Position={channels==2 and 276 or 478,20},Size={24,9}},
+    {Type="GroupBox",Text=model.." Status",Color=Color.White,Fill=Color.LtrGray,StrokeWidth=1,StrokeColor=Color.White,CornerRadius=8,HTextAlign="Left",Position={15,441},Size={281,122}},
+    {Type="Label",Text="IP",HTextAlign="Right",Color=Color.White,FontSize=10,Position={92,449},Size={21,16}},
+    {Type="Label",Text="Status",HTextAlign="Right",Color=Color.White,FontSize=10,Position={21,476},Size={38,16}}
+  }
+  local function AddLED(dia,n,t)layout[n]={Style="Led",Style="Led",Color=t.c,UnlinkOffColor=true,OffColor=Color.LED.Off,Position=t.p,Size={dia,dia},Margin=1,StrokeWidth=0}end
+  local function AddCtl(name,t)layout[name]={PrettyName=t.pn,Style=t.st,ButtonStyle=t.bt,Color=t.clr,Position=t.p,FontSize=t.fs,Legend=t.l,CornerRadius=t.cr,Margin=t.m,OffColor=t.oc,UnlinkOffColor=t.oc~=nil,Size=t.s}end
+  local function AddTxt(name,ix,ch,t,clr)t.p,t.s,t.st,t.fs={chofs.x+ch*100,ix==1 and 46 or(chofs.y+ix*14)},{100,14},t.st or"Textbox",t.fs or 9 AddCtl(name,t)end
+  local function AddLabel(t)table.insert(graphics,{Type="Label",Text=t.t,HTextAlign=t.hta~=nil and t.hta or"Center",FontSize=t.fs~=nil and t.fs or 10,Font=t.f,
+    FontStyle=t.fst,StrokeWidth=t.sw,StrokeColor=t.sc,Color=t.c,Fill=t.fl,Position=t.p,Size=t.s})end
+  for i,c in ipairs{{l={"Model","Firmware","Device ID","RF Band"},n={"model","fw","id","band"},x={p=30,s=36}},{l={"Transmission","Quadversity","Encryption"},n={"txmode","quadmode","encmode"},x={p=143,s=69}}} do for r,l in ipairs(c.l)do
+    local pretty = l..tostring(i==2 and" Mode"or"")table.insert(graphics,{Type="Label",Text=pretty,Name=c.n[r],HTextAlign="Right",FontSize=7,Color=Color.White,Position={c.x.p,485+r*14},Size={c.x.s,14}})
+    AddCtl("hw"..c.n[r],{pn="Receiver~"..pretty,st="Text",p={c.x.p+(i==1 and 40 or 73),485+r*14},fs=9,s={67,14}})
+  end end 
+  local ctltable = {{c="name",p="Channel Name",fs=11},{c="mute",p="Mute",st="Button",bt="Toggle",clr=Color.LED.Red,oc=Color.LtrGray,cr=2,m=1,l="MUTE"},{c="gain",p="Gain",st="Text",clr=Color.Gain},
+    {c="grp",p="Group"},{c="status",p="Status",fs=6},{prefix={c="bat",p="Battery"},t={{c="cyc",p="Cycles"},{c="rtime",p="Run Time"},{c="type",p="Type"},{c="temp",p="Temperature"},{c="chstat",p="Charge Status",clr=Color.BattMeter}}},
+    {prefix={c="tx",p="Transmitter",sp="Transmitter"},t={{c="type",p="Type"},{c="ofs",p="Offset"},{c="rfpwr",p="RF Power"},{c="pwrlk",p="Power Lock"},{c="intdet",p="Interference Detection"},{c="enc",p="Encryption"}}}}
+  local function AddMeterBlock(ch)local pre,xofs =string.format("ch_%i_",ch),mofs.x+(mofs.ofs*ch-mofs.ofs)
+    for ix,mt in ipairs{{n="freq",p="Frequency",s={52,25},px=0},{n="tv",p="TV",s={49,25},px=51}}do layout[string.format("ch_%i_%s",ch,mt.n)]=
+      {PrettyName=string.format("Channel %i~%s",ch,mt.p),Style="TextBox",Font="Roboto",FontStyle="Medium",FontSize=10.5,Position={mt.px+0+xofs,mofs.y},Size=mt.s,TextBoxStyle="NoBackground"}end
+    for _,ml in ipairs{{p={0+xofs ,0+mofs.y},s={52,25}},{p={51+xofs,0+mofs.y},s={49,25}},{p={0+xofs,24+mofs.y},s={64,14},t="RF"},{p={63+xofs,24+mofs.y},s={37,14},t="Audio"},
+      {p={0+xofs,38+mofs.y},s={64,111}},{p={63+xofs,38+mofs.y},s={37,111}},{p={0+xofs ,148+mofs.y},s={100,16},t="Q",hta="Left"}} do
+      local lt={sw=1,sc=Color.Stroke,fl=Color.BGBlack,f="Roboto",fst="Medium",fs=10.5,c=Color.White}for k,v in pairs(ml)do lt[k]=v end AddLabel(lt)end
+    for qual=1,5 do AddLED(13,string.format("%squal_%i",pre,qual),{p={18*qual-5+xofs,149+mofs.y},c=Color.LED.Purple})end
+    for aud=1,8 do AddLED(13,string.format("%saud_%i",pre,aud),{p={75+xofs, 145+mofs.y-13*aud},c=Color.LED[ct[(col.a):sub(aud,aud)] ]})end
+    for abix,ab in ipairs{"a","b"} do local px = xofs+abix*39-34 AddLED(14,string.format("%s%s_ant",pre,ab),{p={px,40+mofs.y},c=Color.LED.Blue})
+      for rf=1,6 do local py=147+mofs.y-14*rf AddLED(14,string.format("%s%s_rf_%i",pre,ab,rf),{p={px,py},c=Color.LED[ct[(col.r):sub(rf,rf)] ]})
+        if abix==1 then AddLabel{t=tostring(rf<6 and -95+5*rf or "OL"),p={chofs.x+ch*100+19,py},s={25,14},f="Roboto",fst="Medium",c=Color.White,fs=10.5}end end
+      AddLabel{t=ab:upper(),p={px,52+mofs.y},s={14,12},f="Roboto",fst="Medium",c=Color.White,fs=10.5}
+    end
+  end
+  for ch=1,channels do
+    AddMeterBlock(ch)AddLabel{t=string.format("Channel %i",ch),p={chofs.x+ch*100,27},s={100,16},hta="Center",fs=11,c=Color.White,f="Roboto",fst="Bold",}
+    local yindex,pre=0,{c=string.format("ch_%i_",ch),p=string.format("Channel %i~",ch)}
+    for yix,base in ipairs(ctltable)do local pre=string.format("ch_%i_",ch)
+      if base.t~=nil then
+        for subix,subbase in ipairs(base.t)do yindex=yindex+1 local mid=base.prefix local name=string.format("%s%s_%s",pre,mid.c,subbase.c)
+          AddTxt(name,yindex,ch,{pn=string.format("Channel %i~%s~%s",ch,mid.p,subbase.p),clr=subbase.clr,fs=subbase.fs})
+          if ch==1 then if mid.sp~=nil then mid.p=mid.sp end AddLabel{t=string.format("%s %s",mid.p,subbase.p),hta="Right",p={2,chofs.y+yindex*14},c=Color.White,s={84,14},fs=7}end
+        end
+      else yindex=yindex+1
+        AddTxt(string.format("%s%s",pre,base.c),yindex,ch,{pn=string.format("Channel %i~%s",ch,base.p),fs=base.fs,m=base.m,clr=base.clr,oc=base.oc,bt=base.bt,st=base.st,l=base.l})
+        if ch==1 then AddLabel{t=base.p,hta="Right",c=Color.White,p={2,yindex==1 and 46 or(chofs.y+yindex*14)},s={84,14},fs=base.fs~=nil and base.fs or 7}end
+      end
+    end
+  end return layout,graphics
+end
+
+if Controls then
+-- Services 
+AD4 = TcpSocket.New()
+AD4.ReadTimeout = 15
+PollTimer = Timer.New()
+rapidjson = require("rapidjson")
+
+-- Constants
+Channels = ModelChannels(Properties)
+status_state = { OK = 0, COMPROMISED = 1, FAULT = 2, NOTPRESENT = 3, MISSING = 4, INITIALIZING = 5 }
+ANTSTAT={X="",R="Red",B="Blue"}
+QUADSTAT={XX="Quad Off",XXXX="Quad ON"}
+BATTYPE={LION="Lithium Ion",ALKA="Alkaline",NIMH="Nickel Metal-Hydride",LITH="Lithium",UNKN="Unknown"}
+BATTMIN={[0xFFFD]="Battery communication warning",[0xFFFE]="Battery time calculating",[0xFFFF]="Unknown"}
+TXMODE={HIGH_DENSITY="High Density",STANDARD="Standard"}
+QUADENC={OFF="Off",ON="On"}
+Tx={Int={DETECTED={Color="Orange",Msg="Interference Detected",State="COMPROMISED"},NONE={Color="Green",Msg="",State="OK"}},
+    Enc={ERROR={Color="Red",Msg="Mismatched Transmitter (Encryption)",State="FAULT"},OK={Color="Green",Msg="",State="OK"}}}
+Data={BATTTEMP={C={0,0,0,0},F={0,0,0,0}},BATTTYPE={"","","",""},TXMODEL={"","","",""},MODEL=""}
+
+-- Control Aliases
+hw,ch = {connect=Controls.hwconnect,ip=Controls.hwip,status=Controls.Status},{}
+for chan=1,Channels do
+  local pre,chtable = string.format("ch_%i_",chan),{}
+  local insert = {qual={},audlev={},rf={}}
+  for _,base in ipairs{"name","mute","gain","grp","status","freq","tv"}do chtable[base] = Controls[pre..base]end
+  for _,tx in ipairs{"type","ofs","rfpwr","pwrlk","intdet","enc"}do chtable["tx"..tx] = Controls[pre.."tx_"..tx]end
+  for _,batt in ipairs{"cyc","rtime","type","temp","chstat"}do chtable["bat"..batt] = Controls[pre.."bat_"..batt]end
+  for qual=1,5 do table.insert(insert.qual,Controls[string.format("%squal_%i",pre,qual)])end
+  for aud=1,8 do table.insert(insert.audlev,Controls[string.format("%saud_%i",pre,aud)])end
+  for _,ab in ipairs{"a","b"} do insert.rf[ab]={ant=Controls[string.format("%s%s_ant",pre,ab)],meter={}}
+  for rf=1,6 do table.insert(insert.rf[ab].meter,Controls[string.format("%s%s_rf_%i",pre,ab,rf)])end end
+  for n,ctlT in pairs(insert) do chtable[n]=ctlT end table.insert(ch,chtable)
+end
+
+-- Helper functions
+function TablePretty(tbl,sort)return rapidjson.encode(tbl,{pretty=true,sort_keys=sort})end
+function CamelCase(str)
+  local outstr={}
+  for word in str:gmatch("(%S+)") do
+    local wordout={}for char in word:gmatch(".") do table.insert(wordout,#wordout==0 and char:upper() or char:lower())end
+    table.insert(outstr,table.concat(wordout))
+  end return table.concat(outstr," ")
+end
+function ExtractText(str) local msg,text={}
+  -- Extract strings from {} and replace with token, then chop up on spaces into array and restore text
+  if str:find("{.-}")then text,str=((str.." "):match("{(.-)%s+}")):gsub(" ","`"),str:gsub("{.-}","TEXTSTR") end
+  for chunk in str:gmatch(" ([%w%-%p]+)")do if chunk:find("TEXTSTR")then chunk = text:gsub("`"," ")end table.insert(msg,chunk)end
+  return msg
+end
+  -- Status Update
+function Status( msg, state, chan )
+  if chan==nil then
+    if state=="OK" and #msg==0 then
+      msg="Connected"..tostring(#Data.MODEL>0 and " to "..Data.MODEL or "")
+    end
+  else
+    if ch[chan].txtype.String=="Unknown" then
+      msg="No Transmitter"..tostring(#msg>0 and "; "..msg or "")
+      if status_state[state]~=2 then state="NOTPRESENT" end
+    end
+  end
+  local st = chan==nil and hw.status or ch[chan].status
+  st.Value = status_state[state]
+  st.String = msg
+  if ((DebugDesc and #msg>0) or (status_state[state]>0)) and chan==nil then print("Status: "..msg) end
+end 
+function BitsToBool(n)
+  bits,bool = bitstring.binstream(string.char(n)),{}
+  for i=1,#bits do table.insert(bool,tonumber(bits:sub(9-i,9-i))==1) end
+  return bool
+end
+function GetAll()if AD4.IsConnected then AD4:Write("< GET 0 ALL >") end end
+FormatFn = {PEAKRMS=function(v)return v-120 end}
+function BatteryChargable(chan,origmsg)return Data.BATTTYPE[chan]=="ALCA"or Data.BATTTYPE[chan]=="LITH" end
+function NA(chan,origmsg,temp)
+  local txmod,chrg,msg=Data.TXMODEL[chan],BatteryChargable(chan)
+  local present=txmod~="Unknown"and#txmod~=0
+  return not (present or chrg),(present or chrg) and "Not Applicable" or origmsg
+end
+
+-- Command Methods
+ChannelFn = {
+  CHAN_NAME=function(chan,name)ch[chan].name.String=name end,
+  AUDIO_MUTE=function(chan,msg)ch[chan].mute.Boolean=msg=="ON"end,
+  AUDIO_GAIN=function(chan,msg)ch[chan].gain.Value=msg-18 end,
+  FREQUENCY=function(chan,msg)ch[chan].freq.String=string.format("%.03f",msg/1000)end,
+  GROUP_CHANNEL=function(chan,msg)local p1,p2=msg:match("(%d+),(%d+)")ch[chan].grp.String=string.format("{ %i, %i }",tonumber(p1),tonumber(p2))end,
+  ANTENNA_STATUS=function(chan,msg)end,
+  TX_BATT_CYCLE_COUNT=function(chan,msg)
+    ch[chan].batcyc.IsIndeterminate,ch[chan].batcyc.String=NA(chan,msg==0xFFFF and"Unknown"or string.format("%i",msg),rx)end,
+  TX_BATT_MINS=function(chan,min)ch[chan].batrtime.IsIndeterminate,ch[chan].batrtime.String=NA(chan,min>0xFFFC and BATTMIN[min]or string.format("%i:%02i",min//60,min%60))end,
+  TX_BATT_TYPE=function(chan,btype)ch[chan].battype.String,Data.BATTTYPE[chan],ch[chan].battype.IsIndeterminate=BATTYPE[btype],btype,btype=="UNKN"end,
+  TX_BATT_TEMP=function(chan,temp,scale,rx)
+    local t=temp==0xFF and"Unknown"or temp.."°"..scale
+    Data.BATTTEMP[scale][chan]=t
+    local isind,msg=NA(chan,string.format("%s / %s",Data.BATTTEMP.C[chan],Data.BATTTEMP.F[chan]) )
+    ch[chan].battemp.String =msg 
+    ch[chan].battemp.IsIndeterminate= isind
+  end,
+  TX_BATT_CHARGE_PERCENT=function(chan,chg)
+    ch[chan].batchstat.Position=chg==0xFF and 0 or chg/100 
+    ch[chan].batchstat.IsIndeterminate=NA(chan,"")
+    ch[chan].batchstat.IsDisabled=not BatteryChargable(chan,"")
+  end,
+  TX_MODEL=function(chan,mod)ch[chan].txtype.String=mod=="UNKNOWN"and"Unknown"or mod Data.TXMODEL[chan]=ch[chan].txtype.String end,
+  TX_OFFSET=function(chan,ofs)ch[chan].txofs.String=ofs==0xFF and"Unknown" or string.format("%i dB",ofs-12)ch[chan].txofs.IsIndeterminate=ofs==0xFF end,
+  TX_POWER_LEVEL=function(chan,pl)ch[chan].txrfpwr.String=pl==0xFF and"Unknown"or string.format("%i mW",pl)ch[chan].txrfpwr.IsIndeterminate=pl==0xFF end,
+  TX_LOCK=function(chan,lock)ch[chan].txpwrlk.String=CamelCase(lock)ch[chan].txpwrlk.IsIndeterminate=ch[chan].txtype.String=="Unknown"end,
+  INTERFERENCE_STATUS=function(chan,int)ch[chan].txintdet.String=int ch[chan].txintdet.Color=Tx.Int[int].Color Status(Tx.Int[int].Msg,Tx.Int[int].State,chan)end,
+  ENCRYPTION_STATUS=function(chan,enc)ch[chan].txenc.String=enc ch[chan].txenc.Color=Tx.Enc[enc].Color Status(Tx.Enc[enc].Msg,Tx.Enc[enc].State,chan)end,
+  RSSI_LED_BITMAP=function(chan,data)
+    local ab=string.char(0x60+data[1])
+    for ix,led in ipairs(ch[chan].rf[string.char(0x60+data[1])].meter)do
+      local mask=BitsToBool(tonumber(data[2]))
+      led.Boolean=mask[ix]
+    end
+  end,
+  RSSI=function(chan,data)end,
+} 
+UnitFn = {
+  MODEL=function(model)Controls.hwmodel.String=model end,
+  FW_VER=function(fwver)Controls.hwfw.String=fwver end,
+  DEVICE_ID=function(devid)Controls.hwid.String=devid end,
+  RF_BAND=function(rfband)Controls.hwband.String=rfband end,
+  TRANSMISSION_MODE=function(txmode)Controls.hwtxmode.String=TXMODE[txmode]end,
+  QUADVERSITY_MODE=function(qmode,rx)Controls.hwquadmode.String=QUADENC[qmode]end,
+  ENCRYPTION_MODE=function(emode,rx)Controls.hwencmode.String=QUADENC[emode]end,
+}
+sampleFn = {
+  CHANNEL_QUALITY=function(chan,data)local q=tonumber(data)for dot,led in ipairs(ch[chan].qual)do led.Boolean = dot<=q and q~=255 end end,
+  AUDIO_LED_BITMAP=function(chan,val)local boolT=BitsToBool(val)for c,led in ipairs(ch[chan].audlev)do led.Boolean= boolT[c]end end,
+  AUDIO_LEVEL_PEAK=function(chan,data)end,--print(string.format("Channel %i AUDIO_LEVEL_PEAK: %idBFS",chan,FormatFn.PEAKRMS(data)))end,
+  AUDIO_LEVEL_RMS=function(chan,data)end,--print(string.format("Channel %i AUDIO_LEVEL_RMS: %idBFS",chan,FormatFn.PEAKRMS(data)))end,
+  ANTENNA_STATUS=function(chan,data)for i=1,#data do local ant,color=ch[chan].rf[string.char(0x60+i)].ant,ANTSTAT[data:sub(i,i)]ant.Color,ant.Boolean=color,#color>0 end end,
+  RF_BAND=function(chan,data)print("RF_BAND",chan,data)end,
+  RSSI=function(chan,data,ab)local abb = string.byte(ab)-0x40 end
+}
+
+function parseSample(chan,msg,rx)
+  for _,fmt in ipairs{"CHANNEL_QUALITY","AUDIO_LED_BITMAP","AUDIO_LEVEL_PEAK","AUDIO_LEVEL_RMS","ANTENNA_STATUS"}do
+    local elem1 = table.remove(msg,1)
+    if elem1:find("%D")==nil then elem1=tonumber(elem1)end
+    sampleFn[fmt](chan,elem1)
+  end for i=1,2 do for j,fmt in ipairs{"RSSI_LED_BITMAP","RSSI"} do ChannelFn[fmt](chan,{i,table.remove(msg,1)})end end
+end
+
+function parseReport(rx)
+  local msg=ExtractText(rx)
+  local rxcmd,mch = table.remove(msg,1),table.remove(msg,1)
+  if rxcmd=="SAMPLE"then if table.remove(msg,1)=="ALL" then parseSample(tonumber(mch),msg,rx)end -- Sample Response
+  elseif mch:find("%D")then if #msg==1 then msg=msg[1]UnitFn[mch](msg,rx)end -- Global Response
+  else -- Channel Resp
+    local chan,extra = tonumber(mch)
+    if chan <= Channels then local rcmd = table.remove(msg,1)
+      if #msg==1 then msg=msg[1]if not msg:find("%D")then msg=tonumber(msg)end end
+      if rcmd:find("TX_BATT_TEMP")then extra=rcmd:sub(#rcmd) rcmd="TX_BATT_TEMP" end
+      if ChannelFn[rcmd]~=nil then ChannelFn[rcmd](chan,msg,extra,rx)end
+    end
+  end
+end
+
+function Startup()
+  GetAll()
+  PollTimer:Start(10)
+  for i=1,Channels do
+    AD4:Write("< SET "..i.." METER_RATE 00100 >")
+  end
+  for i=1,Channels do
+    ch[i].mute.EventHandler=function(m)AD4:Write(string.format("< SET %i AUDIO_MUTE O%s >",i,m.Boolean and "N" or "FF"))end
+    ch[i].gain.EventHandler=function(g)g.Value=math.floor(g.Value)AD4:Write(string.format("< SET %i AUDIO_GAIN %i >",i,g.Value+18))end
+  end
+end
+
+AD4.EventHandler = function(sock, evt, err)
+  if evt == TcpSocket.Events.Connected then
+    Status( "", "OK")
+    Startup()
+  elseif evt == TcpSocket.Events.Reconnect then
+    Status( "socket reconnecting...", "INITIALIZING")
+  elseif evt == TcpSocket.Events.Data then
+    while AD4:Search(">") do
+      parseReport(AD4:ReadLine(TcpSocket.EOL.Custom," >"))
+    end
+  elseif evt == TcpSocket.Events.Closed then
+    Status( "socket closed by remote", "FAULT")
+  elseif evt == TcpSocket.Events.Error then
+    Status( "socket closed due to error: "..tostring(err),"FAULT")
+  elseif evt == TcpSocket.Events.Timeout then
+    Status( "socket closed due to timeout","FAULT")
+  end
+end
+
+function Connect()
+  if hw.connect.Boolean then
+    if AD4.IsConnected then AD4:Disconnect() end
+    Status( "Connecting to Shure Axient Receiver...", "INITIALIZING")
+    AD4:Connect(hw.ip.String,2202)
+  else
+    AD4:Disconnect()
+    Status( "Disconnected", "OK")
+  end
+end
+
+PollTimer.EventHandler=GetAll
+hw.ip.EventHandler = Connect  
+hw.connect.EventHandler = Connect
+Connect()
+end

@@ -1,1 +1,1 @@
---[[ Properties File Contents ]]
+props = {{Name="Axient Receiver Model",Type="enum",Choices={"AD4D - 2 Channel","AD4Q - 4 Channel"},Value="AD4D - 2 Channel"}}
