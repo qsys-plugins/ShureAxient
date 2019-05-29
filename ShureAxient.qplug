@@ -4,11 +4,12 @@
 
 PluginInfo = {
   Name = "Shure~Axient~AD4D/AD4Q Receiver",
-  Version = "1.0.0.0",
-  Id = "COMPILEDPLUGIN-ShureAxientAD4DAD4QReceiver",
+  Version = "1.0.0.1",
+  Id = "cbf5e9b2-5f19-492a-887a-325256be25c5",
   Author = "QSC",
   Description = "Shure AD4D/AD4Q v0.1 from VSCode"
 }
+
 
 function WebToRgb(color) -- Converts Web Hex strings or decimal values to RGB table
   if type(color)=="string" then color = tonumber(color:gsub("%X",""),16) end
@@ -64,6 +65,7 @@ function GetProperties()
 
   props = {{Name="Axient Receiver Model",Type="enum",Choices={"AD4D - 2 Channel","AD4Q - 4 Channel"},Value="AD4D - 2 Channel"}}
 
+
   return props
 end
 
@@ -79,25 +81,26 @@ function GetControls(props)
   ctls = {}
 
     local channels = ModelChannels(props)
-  ctls = {{Name="hwconnect",ControlType="Button",PinStyle="Both",UserPin=true,ButtonType="Toggle",Count=1},
-    {Name="Status",ControlType="Indicator",IndicatorType="Status",PinStyle="Output",UserPin=true,Count=1}}
-  for i,n in ipairs{"ip","model","fw","id","band","txmode","quadmode","encmode"} do
-    table.insert(ctls,{Name = "hw"..n,ControlType=i==1 and"Text"or"Indicator",IndicatorType="Text",PinStyle=i==1 and"Both"or"Output",UserPin=true,Count=1}) end
-  for ch=1,channels do
-    local pre = string.format("ch_%i_",ch)
-    table.insert(ctls,{Name=pre.."mute",ControlType="Button",ButtonType="Toggle",Count=1,PinStyle="Both",UserPin=true})
-    table.insert(ctls,{Name=pre.."gain",ControlType="Knob",Min=-18,Max=42,ControlUnit="dB",Count=1,PinStyle="Both",UserPin=true})
-    table.insert(ctls,{Name=pre.."bat_chstat",ControlType="Knob",Min=0,Max=100,ControlUnit="Percent",PinStyle="Output",UserPin=true,Count=1})
-    for _,base in ipairs{"name","grp","status","freq","tv"}do table.insert(ctls,{Name=pre..base,ControlType="Indicator",IndicatorType=(base=="status"and"Status"or"Text"),Count=1,PinStyle="Output",UserPin=true})end
-    for _,tx in ipairs{"type","ofs","rfpwr","pwrlk","intdet","enc"} do table.insert(ctls,{ Name = pre.."tx_"..tx, ControlType="Indicator",IndicatorType="Text",PinStyle="Output",UserPin=true, Count=1})end
-    for _,batt in ipairs{"cyc","rtime","type","temp"} do table.insert(ctls,{ Name = pre.."bat_"..batt, ControlType="Indicator",IndicatorType="Text",PinStyle="Output",UserPin=true,Count=1})end
-    for qual=1,5 do table.insert(ctls,{Name=string.format("%squal_%i",pre,qual),ControlType="Indicator",IndicatorType="Led",Count=1}) end
-    for aud=1,8 do table.insert(ctls,{Name=string.format("%saud_%i",pre,aud),ControlType="Indicator",IndicatorType="Led",Count=1}) end
-    for _,ab in ipairs{"a","b"} do
-      table.insert(ctls,{Name = string.format("%s%s_ant",pre,ab),ControlType = "Indicator",IndicatorType = "Led", Count=1})
-      for rf=1,6 do table.insert(ctls,{ Name = string.format("%s%s_rf_%i",pre,ab,rf), ControlType = "Indicator", IndicatorType = "Led", Count=1 }) end
-    end
-  end 
+    ctls = {{Name="hwconnect",ControlType="Button",PinStyle="Both",UserPin=true,ButtonType="Toggle",Count=1},
+      {Name="Status",ControlType="Indicator",IndicatorType="Status",PinStyle="Output",UserPin=true,Count=1}}
+    for i,n in ipairs{"ip","model","fw","id","band","txmode","quadmode","encmode"} do
+      table.insert(ctls,{Name = "hw"..n,ControlType=i==1 and"Text"or"Indicator",IndicatorType="Text",PinStyle=i==1 and"Both"or"Output",UserPin=true,Count=1}) end
+    for ch=1,channels do
+      local pre = string.format("ch_%i_",ch)
+      table.insert(ctls,{Name=pre.."mute",ControlType="Button",ButtonType="Toggle",Count=1,PinStyle="Both",UserPin=true})
+      table.insert(ctls,{Name=pre.."gain",ControlType="Knob",Min=-18,Max=42,ControlUnit="dB",Count=1,PinStyle="Both",UserPin=true})
+      table.insert(ctls,{Name=pre.."bat_chstat",ControlType="Knob",Min=0,Max=100,ControlUnit="Percent",PinStyle="Output",UserPin=true,Count=1})
+      for _,base in ipairs{"name","grp","status","freq","tv"}do table.insert(ctls,{Name=pre..base,ControlType="Indicator",IndicatorType=(base=="status"and"Status"or"Text"),Count=1,PinStyle="Output",UserPin=true})end
+      for _,tx in ipairs{"type","ofs","rfpwr","pwrlk","intdet","enc"} do table.insert(ctls,{ Name = pre.."tx_"..tx, ControlType="Indicator",IndicatorType="Text",PinStyle="Output",UserPin=true, Count=1})end
+      for _,batt in ipairs{"cyc","rtime","type","temp"} do table.insert(ctls,{ Name = pre.."bat_"..batt, ControlType="Indicator",IndicatorType="Text",PinStyle="Output",UserPin=true,Count=1})end
+      for qual=1,5 do table.insert(ctls,{Name=string.format("%squal_%i",pre,qual),ControlType="Indicator",IndicatorType="Led",Count=1}) end
+      for aud=1,8 do table.insert(ctls,{Name=string.format("%saud_%i",pre,aud),ControlType="Indicator",IndicatorType="Led",Count=1}) end
+      for _,ab in ipairs{"a","b"} do
+        table.insert(ctls,{Name = string.format("%s%s_ant",pre,ab),ControlType = "Indicator",IndicatorType = "Led", Count=1})
+        for rf=1,6 do table.insert(ctls,{ Name = string.format("%s%s_rf_%i",pre,ab,rf), ControlType = "Indicator", IndicatorType = "Led", Count=1 }) end
+      end
+    end 
+
 
   return ctls
 end
@@ -107,60 +110,61 @@ function GetControlLayout(props)
   graphics = {}
 
     local channels,model,ct,chofs,mofs,col=ModelChannels(props),GetModel(props),{g="Green",a="Amber",y="Yellow",r="Red",b="Blue",p="Purple"},{x=-4,y=195},{x=96,y=60,ofs=100},{a="ggggyyyr",r="aaaaar"}
-  layout={hwip={PrettyName="Receiver~Address",Style="TextBox",FontSize=12,Position={116,449},Size={100,16}},Status={PrettyName="Receiver~Status",Style="TextBox",Position={62,473},Size={221,16}},
-    hwconnect={PrettyName="Receiver~Connect",Style="Button",Legend="Connect",Font="Roboto",FontStyle="Bold",Position={225,449},Size={58,16},Color=Color.Button.On,UnlinkOffColor=true,OffColor=Color.Button.Off}}
-  graphics={
-    {Type="GroupBox",StrokeWidth=0,Fill=Color.Black,Position={0,0},Size={106+channels*100,572}},
-    {Type="Svg",Image=SVG.SHURE,Position={7,6},Size={84,14}},-- Shure Logo
-    {Type="Svg",Image=SVG.AD,Position={channels==2 and 94 or 181,6},Size={144,12}},-- AD Logo
-    {Type="Svg",Image=SVG.Base..SVG.AD4,Position={channels==2 and 244 or 443,6},Size={40,12}},-- AD4
-    {Type="Svg",Image=SVG.Base..SVG[channels==2 and"D"or"Q"],Position={channels==2 and 286 or 485,6},Size={12+(channels==2 and 0 or 2),12+(channels==2 and 0 or 1)}},-- D/Q
-    {Type="Label",Text="v"..PluginInfo.Version,HTextAlign="Right",Color=Color.White,FontSize=7,Position={channels==2 and 247 or 449,20},Size={53,9}},
-    {Type="GroupBox",Text=model.." Status",Color=Color.White,Fill=Color.LtrGray,StrokeWidth=1,StrokeColor=Color.White,CornerRadius=8,HTextAlign="Left",Position={15,441},Size={281,122}},
-    {Type="Label",Text="IP",HTextAlign="Right",Color=Color.White,FontSize=10,Position={92,449},Size={21,16}},
-    {Type="Label",Text="Status",HTextAlign="Right",Color=Color.White,FontSize=10,Position={21,476},Size={38,16}}
-  }
-  local function AddLED(dia,n,t)layout[n]={Style="Led",Style="Led",Color=t.c,UnlinkOffColor=true,OffColor=Color.LED.Off,Position=t.p,Size={dia,dia},Margin=1,StrokeWidth=0}end
-  local function AddCtl(name,t)layout[name]={PrettyName=t.pn,Style=t.st,ButtonStyle=t.bt,Color=t.clr,Position=t.p,FontSize=t.fs,Legend=t.l,CornerRadius=t.cr,Margin=t.m,OffColor=t.oc,UnlinkOffColor=t.oc~=nil,Size=t.s}end
-  local function AddTxt(name,ix,ch,t,clr)t.p,t.s,t.st,t.fs={chofs.x+ch*100,ix==1 and 46 or(chofs.y+ix*14)},{100,14},t.st or"Textbox",t.fs or 9 AddCtl(name,t)end
-  local function AddLabel(t)table.insert(graphics,{Type="Label",Text=t.t,HTextAlign=t.hta~=nil and t.hta or"Center",FontSize=t.fs~=nil and t.fs or 10,Font=t.f,
-    FontStyle=t.fst,StrokeWidth=t.sw,StrokeColor=t.sc,Color=t.c,Fill=t.fl,Position=t.p,Size=t.s})end
-  for i,c in ipairs{{l={"Model","Firmware","Device ID","RF Band"},n={"model","fw","id","band"},x={p=30,s=36}},{l={"Transmission","Quadversity","Encryption"},n={"txmode","quadmode","encmode"},x={p=143,s=69}}} do for r,l in ipairs(c.l)do
-    local pretty = l..tostring(i==2 and" Mode"or"")table.insert(graphics,{Type="Label",Text=pretty,Name=c.n[r],HTextAlign="Right",FontSize=7,Color=Color.White,Position={c.x.p,485+r*14},Size={c.x.s,14}})
-    AddCtl("hw"..c.n[r],{pn="Receiver~"..pretty,st="Text",p={c.x.p+(i==1 and 40 or 73),485+r*14},fs=9,s={67,14}})
-  end end 
-  local ctltable = {{c="name",p="Channel Name",fs=11},{c="mute",p="Mute",st="Button",bt="Toggle",clr=Color.LED.Red,oc=Color.LtrGray,cr=2,m=1,l="MUTE"},{c="gain",p="Gain",st="Text",clr=Color.Gain},
-    {c="grp",p="Group"},{c="status",p="Status",fs=6},{prefix={c="bat",p="Battery"},t={{c="cyc",p="Cycles"},{c="rtime",p="Run Time"},{c="type",p="Type"},{c="temp",p="Temperature"},{c="chstat",p="Charge Status",clr=Color.BattMeter}}},
-    {prefix={c="tx",p="Transmitter",sp="Transmitter"},t={{c="type",p="Type"},{c="ofs",p="Offset"},{c="rfpwr",p="RF Power"},{c="pwrlk",p="Power Lock"},{c="intdet",p="Interference Detection"},{c="enc",p="Encryption"}}}}
-  local function AddMeterBlock(ch)local pre,xofs =string.format("ch_%i_",ch),mofs.x+(mofs.ofs*ch-mofs.ofs)
-    for ix,mt in ipairs{{n="freq",p="Frequency",s={52,25},px=0},{n="tv",p="TV",s={49,25},px=51}}do layout[string.format("ch_%i_%s",ch,mt.n)]=
-      {PrettyName=string.format("Channel %i~%s",ch,mt.p),Style="TextBox",Font="Roboto",FontStyle="Medium",FontSize=10.5,Position={mt.px+0+xofs,mofs.y},Size=mt.s,TextBoxStyle="NoBackground"}end
-    for _,ml in ipairs{{p={0+xofs ,0+mofs.y},s={52,25}},{p={51+xofs,0+mofs.y},s={49,25}},{p={0+xofs,24+mofs.y},s={64,14},t="RF"},{p={63+xofs,24+mofs.y},s={37,14},t="Audio"},
-      {p={0+xofs,38+mofs.y},s={64,111}},{p={63+xofs,38+mofs.y},s={37,111}},{p={0+xofs ,148+mofs.y},s={100,16},t="Q",hta="Left"}} do
-      local lt={sw=1,sc=Color.Stroke,fl=Color.BGBlack,f="Roboto",fst="Medium",fs=10.5,c=Color.White}for k,v in pairs(ml)do lt[k]=v end AddLabel(lt)end
-    for qual=1,5 do AddLED(13,string.format("%squal_%i",pre,qual),{p={18*qual-5+xofs,149+mofs.y},c=Color.LED.Purple})end
-    for aud=1,8 do AddLED(13,string.format("%saud_%i",pre,aud),{p={75+xofs, 145+mofs.y-13*aud},c=Color.LED[ct[(col.a):sub(aud,aud)] ]})end
-    for abix,ab in ipairs{"a","b"} do local px = xofs+abix*39-34 AddLED(14,string.format("%s%s_ant",pre,ab),{p={px,40+mofs.y},c=Color.LED.Blue})
-      for rf=1,6 do local py=147+mofs.y-14*rf AddLED(14,string.format("%s%s_rf_%i",pre,ab,rf),{p={px,py},c=Color.LED[ct[(col.r):sub(rf,rf)] ]})
-        if abix==1 then AddLabel{t=tostring(rf<6 and -95+5*rf or "OL"),p={chofs.x+ch*100+19,py},s={25,14},f="Roboto",fst="Medium",c=Color.White,fs=10.5}end end
-      AddLabel{t=ab:upper(),p={px,52+mofs.y},s={14,12},f="Roboto",fst="Medium",c=Color.White,fs=10.5}
-    end
-  end
-  for ch=1,channels do
-    AddMeterBlock(ch)AddLabel{t=string.format("Channel %i",ch),p={chofs.x+ch*100,27},s={100,16},hta="Center",fs=11,c=Color.White,f="Roboto",fst="Bold",}
-    local yindex,pre=0,{c=string.format("ch_%i_",ch),p=string.format("Channel %i~",ch)}
-    for yix,base in ipairs(ctltable)do local pre=string.format("ch_%i_",ch)
-      if base.t~=nil then
-        for subix,subbase in ipairs(base.t)do yindex=yindex+1 local mid=base.prefix local name=string.format("%s%s_%s",pre,mid.c,subbase.c)
-          AddTxt(name,yindex,ch,{pn=string.format("Channel %i~%s~%s",ch,mid.p,subbase.p),clr=subbase.clr,fs=subbase.fs})
-          if ch==1 then if mid.sp~=nil then mid.p=mid.sp end AddLabel{t=string.format("%s %s",mid.p,subbase.p),hta="Right",p={2,chofs.y+yindex*14},c=Color.White,s={84,14},fs=7}end
-        end
-      else yindex=yindex+1
-        AddTxt(string.format("%s%s",pre,base.c),yindex,ch,{pn=string.format("Channel %i~%s",ch,base.p),fs=base.fs,m=base.m,clr=base.clr,oc=base.oc,bt=base.bt,st=base.st,l=base.l})
-        if ch==1 then AddLabel{t=base.p,hta="Right",c=Color.White,p={2,yindex==1 and 46 or(chofs.y+yindex*14)},s={84,14},fs=base.fs~=nil and base.fs or 7}end
+    layout={hwip={PrettyName="Receiver~Address",Style="TextBox",FontSize=12,Position={116,449},Size={100,16}},Status={PrettyName="Receiver~Status",Style="TextBox",Position={62,473},Size={221,16}},
+      hwconnect={PrettyName="Receiver~Connect",Style="Button",Legend="Connect",Font="Roboto",FontStyle="Bold",Position={225,449},Size={58,16},Color=Color.Button.On,UnlinkOffColor=true,OffColor=Color.Button.Off}}
+    graphics={
+      {Type="GroupBox",StrokeWidth=0,Fill=Color.Black,Position={0,0},Size={106+channels*100,572}},
+      {Type="Svg",Image=SVG.SHURE,Position={7,6},Size={84,14}},-- Shure Logo
+      {Type="Svg",Image=SVG.AD,Position={channels==2 and 94 or 181,6},Size={144,12}},-- AD Logo
+      {Type="Svg",Image=SVG.Base..SVG.AD4,Position={channels==2 and 244 or 443,6},Size={40,12}},-- AD4
+      {Type="Svg",Image=SVG.Base..SVG[channels==2 and"D"or"Q"],Position={channels==2 and 286 or 485,6},Size={12+(channels==2 and 0 or 2),12+(channels==2 and 0 or 1)}},-- D/Q
+      {Type="Label",Text="v"..PluginInfo.Version,HTextAlign="Right",Color=Color.White,FontSize=7,Position={channels==2 and 247 or 449,20},Size={53,9}},
+      {Type="GroupBox",Text=model.." Status",Color=Color.White,Fill=Color.LtrGray,StrokeWidth=1,StrokeColor=Color.White,CornerRadius=8,HTextAlign="Left",Position={15,441},Size={281,122}},
+      {Type="Label",Text="IP",HTextAlign="Right",Color=Color.White,FontSize=10,Position={92,449},Size={21,16}},
+      {Type="Label",Text="Status",HTextAlign="Right",Color=Color.White,FontSize=10,Position={21,476},Size={38,16}}
+    }
+    local function AddLED(dia,n,t)layout[n]={Style="Led",Style="Led",Color=t.c,UnlinkOffColor=true,OffColor=Color.LED.Off,Position=t.p,Size={dia,dia},Margin=1,StrokeWidth=0}end
+    local function AddCtl(name,t)layout[name]={PrettyName=t.pn,Style=t.st,ButtonStyle=t.bt,Color=t.clr,Position=t.p,FontSize=t.fs,Legend=t.l,CornerRadius=t.cr,Margin=t.m,OffColor=t.oc,UnlinkOffColor=t.oc~=nil,Size=t.s}end
+    local function AddTxt(name,ix,ch,t,clr)t.p,t.s,t.st,t.fs={chofs.x+ch*100,ix==1 and 46 or(chofs.y+ix*14)},{100,14},t.st or"Textbox",t.fs or 9 AddCtl(name,t)end
+    local function AddLabel(t)table.insert(graphics,{Type="Label",Text=t.t,HTextAlign=t.hta~=nil and t.hta or"Center",FontSize=t.fs~=nil and t.fs or 10,Font=t.f,
+      FontStyle=t.fst,StrokeWidth=t.sw,StrokeColor=t.sc,Color=t.c,Fill=t.fl,Position=t.p,Size=t.s})end
+    for i,c in ipairs{{l={"Model","Firmware","Device ID","RF Band"},n={"model","fw","id","band"},x={p=30,s=36}},{l={"Transmission","Quadversity","Encryption"},n={"txmode","quadmode","encmode"},x={p=143,s=69}}} do for r,l in ipairs(c.l)do
+      local pretty = l..tostring(i==2 and" Mode"or"")table.insert(graphics,{Type="Label",Text=pretty,Name=c.n[r],HTextAlign="Right",FontSize=7,Color=Color.White,Position={c.x.p,485+r*14},Size={c.x.s,14}})
+      AddCtl("hw"..c.n[r],{pn="Receiver~"..pretty,st="Text",p={c.x.p+(i==1 and 40 or 73),485+r*14},fs=9,s={67,14}})
+    end end 
+    local ctltable = {{c="name",p="Channel Name",fs=11},{c="mute",p="Mute",st="Button",bt="Toggle",clr=Color.LED.Red,oc=Color.LtrGray,cr=2,m=1,l="MUTE"},{c="gain",p="Gain",st="Text",clr=Color.Gain},
+      {c="grp",p="Group"},{c="status",p="Status",fs=6},{prefix={c="bat",p="Battery"},t={{c="cyc",p="Cycles"},{c="rtime",p="Run Time"},{c="type",p="Type"},{c="temp",p="Temperature"},{c="chstat",p="Charge Status",clr=Color.BattMeter}}},
+      {prefix={c="tx",p="Transmitter",sp="Transmitter"},t={{c="type",p="Type"},{c="ofs",p="Offset"},{c="rfpwr",p="RF Power"},{c="pwrlk",p="Power Lock"},{c="intdet",p="Interference Detection"},{c="enc",p="Encryption"}}}}
+    local function AddMeterBlock(ch)local pre,xofs =string.format("ch_%i_",ch),mofs.x+(mofs.ofs*ch-mofs.ofs)
+      for ix,mt in ipairs{{n="freq",p="Frequency",s={52,25},px=0},{n="tv",p="TV",s={49,25},px=51}}do layout[string.format("ch_%i_%s",ch,mt.n)]=
+        {PrettyName=string.format("Channel %i~%s",ch,mt.p),Style="TextBox",Font="Roboto",FontStyle="Medium",FontSize=10.5,Position={mt.px+0+xofs,mofs.y},Size=mt.s,TextBoxStyle="NoBackground"}end
+      for _,ml in ipairs{{p={0+xofs ,0+mofs.y},s={52,25}},{p={51+xofs,0+mofs.y},s={49,25}},{p={0+xofs,24+mofs.y},s={64,14},t="RF"},{p={63+xofs,24+mofs.y},s={37,14},t="Audio"},
+        {p={0+xofs,38+mofs.y},s={64,111}},{p={63+xofs,38+mofs.y},s={37,111}},{p={0+xofs ,148+mofs.y},s={100,16},t="Q",hta="Left"}} do
+        local lt={sw=1,sc=Color.Stroke,fl=Color.BGBlack,f="Roboto",fst="Medium",fs=10.5,c=Color.White}for k,v in pairs(ml)do lt[k]=v end AddLabel(lt)end
+      for qual=1,5 do AddLED(13,string.format("%squal_%i",pre,qual),{p={18*qual-5+xofs,149+mofs.y},c=Color.LED.Purple})end
+      for aud=1,8 do AddLED(13,string.format("%saud_%i",pre,aud),{p={75+xofs, 145+mofs.y-13*aud},c=Color.LED[ct[(col.a):sub(aud,aud)] ]})end
+      for abix,ab in ipairs{"a","b"} do local px = xofs+abix*39-34 AddLED(14,string.format("%s%s_ant",pre,ab),{p={px,40+mofs.y},c=Color.LED.Blue})
+        for rf=1,6 do local py=147+mofs.y-14*rf AddLED(14,string.format("%s%s_rf_%i",pre,ab,rf),{p={px,py},c=Color.LED[ct[(col.r):sub(rf,rf)] ]})
+          if abix==1 then AddLabel{t=tostring(rf<6 and -95+5*rf or "OL"),p={chofs.x+ch*100+19,py},s={25,14},f="Roboto",fst="Medium",c=Color.White,fs=10.5}end end
+        AddLabel{t=ab:upper(),p={px,52+mofs.y},s={14,12},f="Roboto",fst="Medium",c=Color.White,fs=10.5}
       end
     end
-  end
+    for ch=1,channels do
+      AddMeterBlock(ch)AddLabel{t=string.format("Channel %i",ch),p={chofs.x+ch*100,27},s={100,16},hta="Center",fs=11,c=Color.White,f="Roboto",fst="Bold",}
+      local yindex,pre=0,{c=string.format("ch_%i_",ch),p=string.format("Channel %i~",ch)}
+      for yix,base in ipairs(ctltable)do local pre=string.format("ch_%i_",ch)
+        if base.t~=nil then
+          for subix,subbase in ipairs(base.t)do yindex=yindex+1 local mid=base.prefix local name=string.format("%s%s_%s",pre,mid.c,subbase.c)
+            AddTxt(name,yindex,ch,{pn=string.format("Channel %i~%s~%s",ch,mid.p,subbase.p),clr=subbase.clr,fs=subbase.fs})
+            if ch==1 then if mid.sp~=nil then mid.p=mid.sp end AddLabel{t=string.format("%s %s",mid.p,subbase.p),hta="Right",p={2,chofs.y+yindex*14},c=Color.White,s={84,14},fs=7}end
+          end
+        else yindex=yindex+1
+          AddTxt(string.format("%s%s",pre,base.c),yindex,ch,{pn=string.format("Channel %i~%s",ch,base.p),fs=base.fs,m=base.m,clr=base.clr,oc=base.oc,bt=base.bt,st=base.st,l=base.l})
+          if ch==1 then AddLabel{t=base.p,hta="Right",c=Color.White,p={2,yindex==1 and 46 or(chofs.y+yindex*14)},s={84,14},fs=base.fs~=nil and base.fs or 7}end
+        end
+      end
+    end
+
 
   return layout, graphics
 end
@@ -169,211 +173,212 @@ end
 if Controls then
 
   -- Services 
-AD4 = TcpSocket.New()
-AD4.ReadTimeout = 15
-PollTimer = Timer.New()
-rapidjson = require("rapidjson")
-
--- Constants
-Channels = ModelChannels(Properties)
-status_state = { OK = 0, COMPROMISED = 1, FAULT = 2, NOTPRESENT = 3, MISSING = 4, INITIALIZING = 5 }
-ANTSTAT={X="",R="Red",B="Blue"}
-QUADSTAT={XX="Quad Off",XXXX="Quad ON"}
-BATTYPE={LION="Lithium Ion",ALKA="Alkaline",NIMH="Nickel Metal-Hydride",LITH="Lithium",UNKN="Unknown"}
-BATTMIN={[0xFFFD]="Battery communication warning",[0xFFFE]="Battery time calculating",[0xFFFF]="Unknown"}
-TXMODE={HIGH_DENSITY="High Density",STANDARD="Standard"}
-QUADENC={OFF="Off",ON="On"}
-Tx={Int={DETECTED={Color="Orange",Msg="Interference Detected",State="COMPROMISED"},NONE={Color="Green",Msg="",State="OK"}},
-    Enc={ERROR={Color="Red",Msg="Mismatched Transmitter (Encryption)",State="FAULT"},OK={Color="Green",Msg="",State="OK"}}}
-Data={BATTTEMP={C={0,0,0,0},F={0,0,0,0}},BATTTYPE={"","","",""},TXMODEL={"","","",""},MODEL=""}
-
--- Control Aliases
-hw,ch = {connect=Controls.hwconnect,ip=Controls.hwip,status=Controls.Status},{}
-for chan=1,Channels do
-  local pre,chtable = string.format("ch_%i_",chan),{}
-  local insert = {qual={},audlev={},rf={}}
-  for _,base in ipairs{"name","mute","gain","grp","status","freq","tv"}do chtable[base] = Controls[pre..base]end
-  for _,tx in ipairs{"type","ofs","rfpwr","pwrlk","intdet","enc"}do chtable["tx"..tx] = Controls[pre.."tx_"..tx]end
-  for _,batt in ipairs{"cyc","rtime","type","temp","chstat"}do chtable["bat"..batt] = Controls[pre.."bat_"..batt]end
-  for qual=1,5 do table.insert(insert.qual,Controls[string.format("%squal_%i",pre,qual)])end
-  for aud=1,8 do table.insert(insert.audlev,Controls[string.format("%saud_%i",pre,aud)])end
-  for _,ab in ipairs{"a","b"} do insert.rf[ab]={ant=Controls[string.format("%s%s_ant",pre,ab)],meter={}}
-  for rf=1,6 do table.insert(insert.rf[ab].meter,Controls[string.format("%s%s_rf_%i",pre,ab,rf)])end end
-  for n,ctlT in pairs(insert) do chtable[n]=ctlT end table.insert(ch,chtable)
-end
-
--- Helper functions
-function TablePretty(tbl,sort)return rapidjson.encode(tbl,{pretty=true,sort_keys=sort})end
-function CamelCase(str)
-  local outstr={}
-  for word in str:gmatch("(%S+)") do
-    local wordout={}for char in word:gmatch(".") do table.insert(wordout,#wordout==0 and char:upper() or char:lower())end
-    table.insert(outstr,table.concat(wordout))
-  end return table.concat(outstr," ")
-end
-function ExtractText(str) local msg,text={}
-  -- Extract strings from {} and replace with token, then chop up on spaces into array and restore text
-  if str:find("{.-}")then text,str=((str.." "):match("{(.-)%s+}")):gsub(" ","`"),str:gsub("{.-}","TEXTSTR") end
-  for chunk in str:gmatch(" ([%w%-%p]+)")do if chunk:find("TEXTSTR")then chunk = text:gsub("`"," ")end table.insert(msg,chunk)end
-  return msg
-end
-  -- Status Update
-function Status( msg, state, chan )
-  if chan==nil then
-    if state=="OK" and #msg==0 then
-      msg="Connected"..tostring(#Data.MODEL>0 and " to "..Data.MODEL or "")
+  AD4 = TcpSocket.New()
+  AD4.ReadTimeout = 15
+  PollTimer = Timer.New()
+  rapidjson = require("rapidjson")
+  
+  -- Constants
+  Channels = ModelChannels(Properties)
+  status_state = { OK = 0, COMPROMISED = 1, FAULT = 2, NOTPRESENT = 3, MISSING = 4, INITIALIZING = 5 }
+  ANTSTAT={X="",R="Red",B="Blue"}
+  QUADSTAT={XX="Quad Off",XXXX="Quad ON"}
+  BATTYPE={LION="Lithium Ion",ALKA="Alkaline",NIMH="Nickel Metal-Hydride",LITH="Lithium",UNKN="Unknown"}
+  BATTMIN={[0xFFFD]="Battery communication warning",[0xFFFE]="Battery time calculating",[0xFFFF]="Unknown"}
+  TXMODE={HIGH_DENSITY="High Density",STANDARD="Standard"}
+  QUADENC={OFF="Off",ON="On"}
+  Tx={Int={DETECTED={Color="Orange",Msg="Interference Detected",State="COMPROMISED"},NONE={Color="Green",Msg="",State="OK"}},
+      Enc={ERROR={Color="Red",Msg="Mismatched Transmitter (Encryption)",State="FAULT"},OK={Color="Green",Msg="",State="OK"}}}
+  Data={BATTTEMP={C={0,0,0,0},F={0,0,0,0}},BATTTYPE={"","","",""},TXMODEL={"","","",""},MODEL=""}
+  
+  -- Control Aliases
+  hw,ch = {connect=Controls.hwconnect,ip=Controls.hwip,status=Controls.Status},{}
+  for chan=1,Channels do
+    local pre,chtable = string.format("ch_%i_",chan),{}
+    local insert = {qual={},audlev={},rf={}}
+    for _,base in ipairs{"name","mute","gain","grp","status","freq","tv"}do chtable[base] = Controls[pre..base]end
+    for _,tx in ipairs{"type","ofs","rfpwr","pwrlk","intdet","enc"}do chtable["tx"..tx] = Controls[pre.."tx_"..tx]end
+    for _,batt in ipairs{"cyc","rtime","type","temp","chstat"}do chtable["bat"..batt] = Controls[pre.."bat_"..batt]end
+    for qual=1,5 do table.insert(insert.qual,Controls[string.format("%squal_%i",pre,qual)])end
+    for aud=1,8 do table.insert(insert.audlev,Controls[string.format("%saud_%i",pre,aud)])end
+    for _,ab in ipairs{"a","b"} do insert.rf[ab]={ant=Controls[string.format("%s%s_ant",pre,ab)],meter={}}
+    for rf=1,6 do table.insert(insert.rf[ab].meter,Controls[string.format("%s%s_rf_%i",pre,ab,rf)])end end
+    for n,ctlT in pairs(insert) do chtable[n]=ctlT end table.insert(ch,chtable)
+  end
+  
+  -- Helper functions
+  function TablePretty(tbl,sort)return rapidjson.encode(tbl,{pretty=true,sort_keys=sort})end
+  function CamelCase(str)
+    local outstr={}
+    for word in str:gmatch("(%S+)") do
+      local wordout={}for char in word:gmatch(".") do table.insert(wordout,#wordout==0 and char:upper() or char:lower())end
+      table.insert(outstr,table.concat(wordout))
+    end return table.concat(outstr," ")
+  end
+  function ExtractText(str) local msg,text={}
+    -- Extract strings from {} and replace with token, then chop up on spaces into array and restore text
+    if str:find("{.-}")then text,str=((str.." "):match("{(.-)%s+}")):gsub(" ","`"),str:gsub("{.-}","TEXTSTR") end
+    for chunk in str:gmatch(" ([%w%-%p]+)")do if chunk:find("TEXTSTR")then chunk = text:gsub("`"," ")end table.insert(msg,chunk)end
+    return msg
+  end
+    -- Status Update
+  function Status( msg, state, chan )
+    if chan==nil then
+      if state=="OK" and #msg==0 then
+        msg="Connected"..tostring(#Data.MODEL>0 and " to "..Data.MODEL or "")
+      end
+    else
+      if ch[chan].txtype.String=="Unknown" then
+        msg="No Transmitter"..tostring(#msg>0 and "; "..msg or "")
+        if status_state[state]~=2 then state="NOTPRESENT" end
+      end
     end
-  else
-    if ch[chan].txtype.String=="Unknown" then
-      msg="No Transmitter"..tostring(#msg>0 and "; "..msg or "")
-      if status_state[state]~=2 then state="NOTPRESENT" end
+    local st = chan==nil and hw.status or ch[chan].status
+    st.Value = status_state[state]
+    st.String = msg
+    if ((DebugDesc and #msg>0) or (status_state[state]>0)) and chan==nil then print("Status: "..msg) end
+  end 
+  function BitsToBool(n)
+    bits,bool = bitstring.binstream(string.char(n)),{}
+    for i=1,#bits do table.insert(bool,tonumber(bits:sub(9-i,9-i))==1) end
+    return bool
+  end
+  function GetAll()if AD4.IsConnected then AD4:Write("< GET 0 ALL >") end end
+  FormatFn = {PEAKRMS=function(v)return v-120 end}
+  function BatteryChargable(chan,origmsg)return Data.BATTTYPE[chan]=="ALCA"or Data.BATTTYPE[chan]=="LITH" end
+  function NA(chan,origmsg,temp)
+    local txmod,chrg,msg=Data.TXMODEL[chan],BatteryChargable(chan)
+    local present=txmod~="Unknown"and#txmod~=0
+    return not (present or chrg),(present or chrg) and "Not Applicable" or origmsg
+  end
+  
+  -- Command Methods
+  ChannelFn = {
+    CHAN_NAME=function(chan,name)ch[chan].name.String=name end,
+    AUDIO_MUTE=function(chan,msg)ch[chan].mute.Boolean=msg=="ON"end,
+    AUDIO_GAIN=function(chan,msg)ch[chan].gain.Value=msg-18 end,
+    FREQUENCY=function(chan,msg)ch[chan].freq.String=string.format("%.03f",msg/1000)end,
+    GROUP_CHANNEL=function(chan,msg)local p1,p2=msg:match("(%d+),(%d+)")ch[chan].grp.String=string.format("{ %i, %i }",tonumber(p1),tonumber(p2))end,
+    ANTENNA_STATUS=function(chan,msg)end,
+    TX_BATT_CYCLE_COUNT=function(chan,msg)
+      ch[chan].batcyc.IsIndeterminate,ch[chan].batcyc.String=NA(chan,msg==0xFFFF and"Unknown"or string.format("%i",msg),rx)end,
+    TX_BATT_MINS=function(chan,min)ch[chan].batrtime.IsIndeterminate,ch[chan].batrtime.String=NA(chan,min>0xFFFC and BATTMIN[min]or string.format("%i:%02i",min//60,min%60))end,
+    TX_BATT_TYPE=function(chan,btype)ch[chan].battype.String,Data.BATTTYPE[chan],ch[chan].battype.IsIndeterminate=BATTYPE[btype],btype,btype=="UNKN"end,
+    TX_BATT_TEMP=function(chan,temp,scale,rx)
+      local t=temp==0xFF and"Unknown"or temp.."°"..scale
+      Data.BATTTEMP[scale][chan]=t
+      local isind,msg=NA(chan,string.format("%s / %s",Data.BATTTEMP.C[chan],Data.BATTTEMP.F[chan]) )
+      ch[chan].battemp.String =msg 
+      ch[chan].battemp.IsIndeterminate= isind
+    end,
+    TX_BATT_CHARGE_PERCENT=function(chan,chg)
+      ch[chan].batchstat.Position=chg==0xFF and 0 or chg/100 
+      ch[chan].batchstat.IsIndeterminate=NA(chan,"")
+      ch[chan].batchstat.IsDisabled=not BatteryChargable(chan,"")
+    end,
+    TX_MODEL=function(chan,mod)ch[chan].txtype.String=mod=="UNKNOWN"and"Unknown"or mod Data.TXMODEL[chan]=ch[chan].txtype.String end,
+    TX_OFFSET=function(chan,ofs)ch[chan].txofs.String=ofs==0xFF and"Unknown" or string.format("%i dB",ofs-12)ch[chan].txofs.IsIndeterminate=ofs==0xFF end,
+    TX_POWER_LEVEL=function(chan,pl)ch[chan].txrfpwr.String=pl==0xFF and"Unknown"or string.format("%i mW",pl)ch[chan].txrfpwr.IsIndeterminate=pl==0xFF end,
+    TX_LOCK=function(chan,lock)ch[chan].txpwrlk.String=CamelCase(lock)ch[chan].txpwrlk.IsIndeterminate=ch[chan].txtype.String=="Unknown"end,
+    INTERFERENCE_STATUS=function(chan,int)ch[chan].txintdet.String=int ch[chan].txintdet.Color=Tx.Int[int].Color Status(Tx.Int[int].Msg,Tx.Int[int].State,chan)end,
+    ENCRYPTION_STATUS=function(chan,enc)ch[chan].txenc.String=enc ch[chan].txenc.Color=Tx.Enc[enc].Color Status(Tx.Enc[enc].Msg,Tx.Enc[enc].State,chan)end,
+    RSSI_LED_BITMAP=function(chan,data)
+      local ab=string.char(0x60+data[1])
+      for ix,led in ipairs(ch[chan].rf[string.char(0x60+data[1])].meter)do
+        local mask=BitsToBool(tonumber(data[2]))
+        led.Boolean=mask[ix]
+      end
+    end,
+    RSSI=function(chan,data)end,
+  } 
+  UnitFn = {
+    MODEL=function(model)Controls.hwmodel.String=model end,
+    FW_VER=function(fwver)Controls.hwfw.String=fwver end,
+    DEVICE_ID=function(devid)Controls.hwid.String=devid end,
+    RF_BAND=function(rfband)Controls.hwband.String=rfband end,
+    TRANSMISSION_MODE=function(txmode)Controls.hwtxmode.String=TXMODE[txmode]end,
+    QUADVERSITY_MODE=function(qmode,rx)Controls.hwquadmode.String=QUADENC[qmode]end,
+    ENCRYPTION_MODE=function(emode,rx)Controls.hwencmode.String=QUADENC[emode]end,
+  }
+  sampleFn = {
+    CHANNEL_QUALITY=function(chan,data)local q=tonumber(data)for dot,led in ipairs(ch[chan].qual)do led.Boolean = dot<=q and q~=255 end end,
+    AUDIO_LED_BITMAP=function(chan,val)local boolT=BitsToBool(val)for c,led in ipairs(ch[chan].audlev)do led.Boolean= boolT[c]end end,
+    AUDIO_LEVEL_PEAK=function(chan,data)end,--print(string.format("Channel %i AUDIO_LEVEL_PEAK: %idBFS",chan,FormatFn.PEAKRMS(data)))end,
+    AUDIO_LEVEL_RMS=function(chan,data)end,--print(string.format("Channel %i AUDIO_LEVEL_RMS: %idBFS",chan,FormatFn.PEAKRMS(data)))end,
+    ANTENNA_STATUS=function(chan,data)for i=1,#data do local ant,color=ch[chan].rf[string.char(0x60+i)].ant,ANTSTAT[data:sub(i,i)]ant.Color,ant.Boolean=color,#color>0 end end,
+    RF_BAND=function(chan,data)print("RF_BAND",chan,data)end,
+    RSSI=function(chan,data,ab)local abb = string.byte(ab)-0x40 end
+  }
+  
+  function parseSample(chan,msg,rx)
+    for _,fmt in ipairs{"CHANNEL_QUALITY","AUDIO_LED_BITMAP","AUDIO_LEVEL_PEAK","AUDIO_LEVEL_RMS","ANTENNA_STATUS"}do
+      local elem1 = table.remove(msg,1)
+      if elem1:find("%D")==nil then elem1=tonumber(elem1)end
+      sampleFn[fmt](chan,elem1)
+    end for i=1,2 do for j,fmt in ipairs{"RSSI_LED_BITMAP","RSSI"} do ChannelFn[fmt](chan,{i,table.remove(msg,1)})end end
+  end
+  
+  function parseReport(rx)
+    local msg=ExtractText(rx)
+    local rxcmd,mch = table.remove(msg,1),table.remove(msg,1)
+    if rxcmd=="SAMPLE"then if table.remove(msg,1)=="ALL" then parseSample(tonumber(mch),msg,rx)end -- Sample Response
+    elseif mch:find("%D")then if #msg==1 then msg=msg[1]UnitFn[mch](msg,rx)end -- Global Response
+    else -- Channel Resp
+      local chan,extra = tonumber(mch)
+      if chan <= Channels then local rcmd = table.remove(msg,1)
+        if #msg==1 then msg=msg[1]if not msg:find("%D")then msg=tonumber(msg)end end
+        if rcmd:find("TX_BATT_TEMP")then extra=rcmd:sub(#rcmd) rcmd="TX_BATT_TEMP" end
+        if ChannelFn[rcmd]~=nil then ChannelFn[rcmd](chan,msg,extra,rx)end
+      end
     end
   end
-  local st = chan==nil and hw.status or ch[chan].status
-  st.Value = status_state[state]
-  st.String = msg
-  if ((DebugDesc and #msg>0) or (status_state[state]>0)) and chan==nil then print("Status: "..msg) end
-end 
-function BitsToBool(n)
-  bits,bool = bitstring.binstream(string.char(n)),{}
-  for i=1,#bits do table.insert(bool,tonumber(bits:sub(9-i,9-i))==1) end
-  return bool
-end
-function GetAll()if AD4.IsConnected then AD4:Write("< GET 0 ALL >") end end
-FormatFn = {PEAKRMS=function(v)return v-120 end}
-function BatteryChargable(chan,origmsg)return Data.BATTTYPE[chan]=="ALCA"or Data.BATTTYPE[chan]=="LITH" end
-function NA(chan,origmsg,temp)
-  local txmod,chrg,msg=Data.TXMODEL[chan],BatteryChargable(chan)
-  local present=txmod~="Unknown"and#txmod~=0
-  return not (present or chrg),(present or chrg) and "Not Applicable" or origmsg
-end
-
--- Command Methods
-ChannelFn = {
-  CHAN_NAME=function(chan,name)ch[chan].name.String=name end,
-  AUDIO_MUTE=function(chan,msg)ch[chan].mute.Boolean=msg=="ON"end,
-  AUDIO_GAIN=function(chan,msg)ch[chan].gain.Value=msg-18 end,
-  FREQUENCY=function(chan,msg)ch[chan].freq.String=string.format("%.03f",msg/1000)end,
-  GROUP_CHANNEL=function(chan,msg)local p1,p2=msg:match("(%d+),(%d+)")ch[chan].grp.String=string.format("{ %i, %i }",tonumber(p1),tonumber(p2))end,
-  ANTENNA_STATUS=function(chan,msg)end,
-  TX_BATT_CYCLE_COUNT=function(chan,msg)
-    ch[chan].batcyc.IsIndeterminate,ch[chan].batcyc.String=NA(chan,msg==0xFFFF and"Unknown"or string.format("%i",msg),rx)end,
-  TX_BATT_MINS=function(chan,min)ch[chan].batrtime.IsIndeterminate,ch[chan].batrtime.String=NA(chan,min>0xFFFC and BATTMIN[min]or string.format("%i:%02i",min//60,min%60))end,
-  TX_BATT_TYPE=function(chan,btype)ch[chan].battype.String,Data.BATTTYPE[chan],ch[chan].battype.IsIndeterminate=BATTYPE[btype],btype,btype=="UNKN"end,
-  TX_BATT_TEMP=function(chan,temp,scale,rx)
-    local t=temp==0xFF and"Unknown"or temp.."°"..scale
-    Data.BATTTEMP[scale][chan]=t
-    local isind,msg=NA(chan,string.format("%s / %s",Data.BATTTEMP.C[chan],Data.BATTTEMP.F[chan]) )
-    ch[chan].battemp.String =msg 
-    ch[chan].battemp.IsIndeterminate= isind
-  end,
-  TX_BATT_CHARGE_PERCENT=function(chan,chg)
-    ch[chan].batchstat.Position=chg==0xFF and 0 or chg/100 
-    ch[chan].batchstat.IsIndeterminate=NA(chan,"")
-    ch[chan].batchstat.IsDisabled=not BatteryChargable(chan,"")
-  end,
-  TX_MODEL=function(chan,mod)ch[chan].txtype.String=mod=="UNKNOWN"and"Unknown"or mod Data.TXMODEL[chan]=ch[chan].txtype.String end,
-  TX_OFFSET=function(chan,ofs)ch[chan].txofs.String=ofs==0xFF and"Unknown" or string.format("%i dB",ofs-12)ch[chan].txofs.IsIndeterminate=ofs==0xFF end,
-  TX_POWER_LEVEL=function(chan,pl)ch[chan].txrfpwr.String=pl==0xFF and"Unknown"or string.format("%i mW",pl)ch[chan].txrfpwr.IsIndeterminate=pl==0xFF end,
-  TX_LOCK=function(chan,lock)ch[chan].txpwrlk.String=CamelCase(lock)ch[chan].txpwrlk.IsIndeterminate=ch[chan].txtype.String=="Unknown"end,
-  INTERFERENCE_STATUS=function(chan,int)ch[chan].txintdet.String=int ch[chan].txintdet.Color=Tx.Int[int].Color Status(Tx.Int[int].Msg,Tx.Int[int].State,chan)end,
-  ENCRYPTION_STATUS=function(chan,enc)ch[chan].txenc.String=enc ch[chan].txenc.Color=Tx.Enc[enc].Color Status(Tx.Enc[enc].Msg,Tx.Enc[enc].State,chan)end,
-  RSSI_LED_BITMAP=function(chan,data)
-    local ab=string.char(0x60+data[1])
-    for ix,led in ipairs(ch[chan].rf[string.char(0x60+data[1])].meter)do
-      local mask=BitsToBool(tonumber(data[2]))
-      led.Boolean=mask[ix]
+  
+  function Startup()
+    GetAll()
+    PollTimer:Start(10)
+    for i=1,Channels do
+      AD4:Write("< SET "..i.." METER_RATE 00100 >")
     end
-  end,
-  RSSI=function(chan,data)end,
-} 
-UnitFn = {
-  MODEL=function(model)Controls.hwmodel.String=model end,
-  FW_VER=function(fwver)Controls.hwfw.String=fwver end,
-  DEVICE_ID=function(devid)Controls.hwid.String=devid end,
-  RF_BAND=function(rfband)Controls.hwband.String=rfband end,
-  TRANSMISSION_MODE=function(txmode)Controls.hwtxmode.String=TXMODE[txmode]end,
-  QUADVERSITY_MODE=function(qmode,rx)Controls.hwquadmode.String=QUADENC[qmode]end,
-  ENCRYPTION_MODE=function(emode,rx)Controls.hwencmode.String=QUADENC[emode]end,
-}
-sampleFn = {
-  CHANNEL_QUALITY=function(chan,data)local q=tonumber(data)for dot,led in ipairs(ch[chan].qual)do led.Boolean = dot<=q and q~=255 end end,
-  AUDIO_LED_BITMAP=function(chan,val)local boolT=BitsToBool(val)for c,led in ipairs(ch[chan].audlev)do led.Boolean= boolT[c]end end,
-  AUDIO_LEVEL_PEAK=function(chan,data)end,--print(string.format("Channel %i AUDIO_LEVEL_PEAK: %idBFS",chan,FormatFn.PEAKRMS(data)))end,
-  AUDIO_LEVEL_RMS=function(chan,data)end,--print(string.format("Channel %i AUDIO_LEVEL_RMS: %idBFS",chan,FormatFn.PEAKRMS(data)))end,
-  ANTENNA_STATUS=function(chan,data)for i=1,#data do local ant,color=ch[chan].rf[string.char(0x60+i)].ant,ANTSTAT[data:sub(i,i)]ant.Color,ant.Boolean=color,#color>0 end end,
-  RF_BAND=function(chan,data)print("RF_BAND",chan,data)end,
-  RSSI=function(chan,data,ab)local abb = string.byte(ab)-0x40 end
-}
-
-function parseSample(chan,msg,rx)
-  for _,fmt in ipairs{"CHANNEL_QUALITY","AUDIO_LED_BITMAP","AUDIO_LEVEL_PEAK","AUDIO_LEVEL_RMS","ANTENNA_STATUS"}do
-    local elem1 = table.remove(msg,1)
-    if elem1:find("%D")==nil then elem1=tonumber(elem1)end
-    sampleFn[fmt](chan,elem1)
-  end for i=1,2 do for j,fmt in ipairs{"RSSI_LED_BITMAP","RSSI"} do ChannelFn[fmt](chan,{i,table.remove(msg,1)})end end
-end
-
-function parseReport(rx)
-  local msg=ExtractText(rx)
-  local rxcmd,mch = table.remove(msg,1),table.remove(msg,1)
-  if rxcmd=="SAMPLE"then if table.remove(msg,1)=="ALL" then parseSample(tonumber(mch),msg,rx)end -- Sample Response
-  elseif mch:find("%D")then if #msg==1 then msg=msg[1]UnitFn[mch](msg,rx)end -- Global Response
-  else -- Channel Resp
-    local chan,extra = tonumber(mch)
-    if chan <= Channels then local rcmd = table.remove(msg,1)
-      if #msg==1 then msg=msg[1]if not msg:find("%D")then msg=tonumber(msg)end end
-      if rcmd:find("TX_BATT_TEMP")then extra=rcmd:sub(#rcmd) rcmd="TX_BATT_TEMP" end
-      if ChannelFn[rcmd]~=nil then ChannelFn[rcmd](chan,msg,extra,rx)end
+    for i=1,Channels do
+      ch[i].mute.EventHandler=function(m)AD4:Write(string.format("< SET %i AUDIO_MUTE O%s >",i,m.Boolean and "N" or "FF"))end
+      ch[i].gain.EventHandler=function(g)g.Value=math.floor(g.Value)AD4:Write(string.format("< SET %i AUDIO_GAIN %i >",i,g.Value+18))end
     end
   end
-end
-
-function Startup()
-  GetAll()
-  PollTimer:Start(10)
-  for i=1,Channels do
-    AD4:Write("< SET "..i.." METER_RATE 00100 >")
-  end
-  for i=1,Channels do
-    ch[i].mute.EventHandler=function(m)AD4:Write(string.format("< SET %i AUDIO_MUTE O%s >",i,m.Boolean and "N" or "FF"))end
-    ch[i].gain.EventHandler=function(g)g.Value=math.floor(g.Value)AD4:Write(string.format("< SET %i AUDIO_GAIN %i >",i,g.Value+18))end
-  end
-end
-
-AD4.EventHandler = function(sock, evt, err)
-  if evt == TcpSocket.Events.Connected then
-    Status( "", "OK")
-    Startup()
-  elseif evt == TcpSocket.Events.Reconnect then
-    Status( "socket reconnecting...", "INITIALIZING")
-  elseif evt == TcpSocket.Events.Data then
-    while AD4:Search(">") do
-      parseReport(AD4:ReadLine(TcpSocket.EOL.Custom," >"))
+  
+  AD4.EventHandler = function(sock, evt, err)
+    if evt == TcpSocket.Events.Connected then
+      Status( "", "OK")
+      Startup()
+    elseif evt == TcpSocket.Events.Reconnect then
+      Status( "socket reconnecting...", "INITIALIZING")
+    elseif evt == TcpSocket.Events.Data then
+      while AD4:Search(">") do
+        parseReport(AD4:ReadLine(TcpSocket.EOL.Custom," >"))
+      end
+    elseif evt == TcpSocket.Events.Closed then
+      Status( "socket closed by remote", "FAULT")
+    elseif evt == TcpSocket.Events.Error then
+      Status( "socket closed due to error: "..tostring(err),"FAULT")
+    elseif evt == TcpSocket.Events.Timeout then
+      Status( "socket closed due to timeout","FAULT")
     end
-  elseif evt == TcpSocket.Events.Closed then
-    Status( "socket closed by remote", "FAULT")
-  elseif evt == TcpSocket.Events.Error then
-    Status( "socket closed due to error: "..tostring(err),"FAULT")
-  elseif evt == TcpSocket.Events.Timeout then
-    Status( "socket closed due to timeout","FAULT")
   end
-end
-
-function Connect()
-  if hw.connect.Boolean then
-    if AD4.IsConnected then AD4:Disconnect() end
-    Status( "Connecting to Shure Axient Receiver...", "INITIALIZING")
-    AD4:Connect(hw.ip.String,2202)
-  else
-    AD4:Disconnect()
-    Status( "Disconnected", "OK")
+  
+  function Connect()
+    if hw.connect.Boolean then
+      if AD4.IsConnected then AD4:Disconnect() end
+      Status( "Connecting to Shure Axient Receiver...", "INITIALIZING")
+      AD4:Connect(hw.ip.String,2202)
+    else
+      AD4:Disconnect()
+      Status( "Disconnected", "OK")
+    end
   end
-end
+  
+  PollTimer.EventHandler=GetAll
+  hw.ip.EventHandler = Connect  
+  hw.connect.EventHandler = Connect
+  Connect()
 
-PollTimer.EventHandler=GetAll
-hw.ip.EventHandler = Connect  
-hw.connect.EventHandler = Connect
-Connect()
   
 end
